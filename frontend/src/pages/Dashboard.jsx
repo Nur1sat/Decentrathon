@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Users, TrendingUp, Bot, RefreshCw, Eye } from "lucide-react";
-import { getCandidates } from "../api/client.js";
+import { Users, TrendingUp, Bot, RefreshCw, Eye, Zap } from "lucide-react";
+import { getCandidates, scoreCandidate } from "../api/client.js";
 import CandidateTable from "../components/CandidateTable.jsx";
 
 function StatCard({ icon, label, value, sub, color = "text-primary-400" }) {
@@ -37,11 +37,11 @@ export default function Dashboard() {
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const [scoringAll, setScoringAll] = useState(false);
+  const [scoringProgress, setScoringProgress] = useState(null);
 
-  const load = async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
+  const load = async () => {
+    setLoading(true);
     setError(null);
     try {
       const data = await getCandidates();
@@ -50,8 +50,22 @@ export default function Dashboard() {
       setError(e.message);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
+  };
+
+  const handleScoreAll = async () => {
+    setScoringAll(true);
+    setScoringProgress(0);
+    const ids = candidates.map((c) => c.id);
+    for (let i = 0; i < ids.length; i++) {
+      try {
+        await scoreCandidate(ids[i]);
+      } catch (_) {}
+      setScoringProgress(i + 1);
+    }
+    setScoringAll(false);
+    setScoringProgress(null);
+    await load();
   };
 
   useEffect(() => {
@@ -79,12 +93,18 @@ export default function Dashboard() {
             </div>
           </div>
           <button
-            onClick={() => load(true)}
-            disabled={refreshing}
-            className="btn-secondary text-xs gap-1.5"
+            onClick={handleScoreAll}
+            disabled={scoringAll || candidates.length === 0}
+            className="btn-primary text-xs gap-1.5"
           >
-            <RefreshCw size={13} className={refreshing ? "animate-spin" : ""} />
-            Обновить
+            {scoringAll ? (
+              <RefreshCw size={13} className="animate-spin" />
+            ) : (
+              <Zap size={13} />
+            )}
+            {scoringAll
+              ? `Анализ ${scoringProgress}/${candidates.length}...`
+              : "Проанализировать всех"}
           </button>
         </div>
       </header>
