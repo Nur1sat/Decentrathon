@@ -4,7 +4,7 @@ import re
 import logging
 from typing import Optional
 
-from google import genai
+from groq import Groq
 from dotenv import load_dotenv
 
 from prompts import build_prompt
@@ -16,25 +16,30 @@ logger = logging.getLogger(__name__)
 
 class ScoringService:
     def __init__(self):
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
-            raise ValueError("GEMINI_API_KEY environment variable is not set")
-        self.client = genai.Client(api_key=api_key)
+            raise ValueError("GROQ_API_KEY environment variable is not set")
+        self.client = Groq(api_key=api_key)
+        self.model = "llama-3.3-70b-versatile"
 
     def score_candidate(self, candidate_data: dict) -> Optional[dict]:
         system_prompt, user_prompt = build_prompt(candidate_data)
-        full_prompt = f"{system_prompt}\n\n{user_prompt}"
 
         try:
-            response = self.client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=full_prompt,
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.3,
+                max_tokens=2048,
             )
-            response_text = response.text.strip()
+            response_text = response.choices[0].message.content.strip()
             return self._parse_response(response_text, candidate_data)
 
         except Exception as e:
-            logger.error(f"Gemini API error for candidate {candidate_data.get('full_name')}: {e}")
+            logger.error(f"Groq API error for candidate {candidate_data.get('full_name')}: {e}")
             raise
 
     def _parse_response(self, response_text: str, candidate_data: dict) -> dict:
