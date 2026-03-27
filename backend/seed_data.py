@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Seed script: populates the database with 12 synthetic candidates
-and optionally triggers AI scoring if ANTHROPIC_API_KEY is set.
+and optionally triggers AI scoring if GROQ_API_KEY is set.
 """
 import os
 import sys
@@ -405,9 +405,9 @@ def seed(db: Session):
 
 
 def score_all(db: Session, candidates):
-    api_key = os.getenv("ANTHROPIC_API_KEY")
+    api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
-        logger.warning("ANTHROPIC_API_KEY not set — skipping AI scoring.")
+        logger.warning("GROQ_API_KEY not set — skipping AI scoring.")
         return
 
     try:
