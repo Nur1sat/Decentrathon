@@ -4,7 +4,7 @@ import re
 import logging
 from typing import Optional
 
-import anthropic
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 from prompts import build_prompt
@@ -16,49 +16,44 @@ logger = logging.getLogger(__name__)
 
 class ScoringService:
     def __init__(self):
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+        api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
-            raise ValueError("ANTHROPIC_API_KEY environment variable is not set")
-        self.client = anthropic.Anthropic(api_key=api_key)
-        self.model = "claude-sonnet-4-6"
+            raise ValueError("GEMINI_API_KEY environment variable is not set")
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel(
+            model_name="gemini-2.0-flash",
+            generation_config=genai.GenerationConfig(
+                temperature=0.3,
+                max_output_tokens=2048,
+            )
+        )
 
     def score_candidate(self, candidate_data: dict) -> Optional[dict]:
         system_prompt, user_prompt = build_prompt(candidate_data)
+        full_prompt = f"{system_prompt}\n\n{user_prompt}"
 
         try:
-            message = self.client.messages.create(
-                model=self.model,
-                max_tokens=2048,
-                system=system_prompt,
-                messages=[
-                    {"role": "user", "content": user_prompt}
-                ]
-            )
-            response_text = message.content[0].text.strip()
+            response = self.model.generate_content(full_prompt)
+            response_text = response.text.strip()
             return self._parse_response(response_text, candidate_data)
 
-        except anthropic.APIError as e:
-            logger.error(f"Anthropic API error for candidate {candidate_data.get('full_name')}: {e}")
-            raise
         except Exception as e:
-            logger.error(f"Unexpected error scoring candidate {candidate_data.get('full_name')}: {e}")
+            logger.error(f"Gemini API error for candidate {candidate_data.get('full_name')}: {e}")
             raise
 
     def _parse_response(self, response_text: str, candidate_data: dict) -> dict:
-        # Strip markdown code fences if present
         cleaned = re.sub(r"```(?:json)?\s*", "", response_text)
         cleaned = re.sub(r"```\s*$", "", cleaned).strip()
 
         try:
             data = json.loads(cleaned)
         except json.JSONDecodeError:
-            # Try to extract JSON object from the text
             match = re.search(r"\{.*\}", cleaned, re.DOTALL)
             if match:
                 try:
                     data = json.loads(match.group(0))
                 except json.JSONDecodeError as e:
-                    logger.error(f"Failed to parse JSON from response: {e}\nResponse: {response_text[:500]}")
+                    logger.error(f"Failed to parse JSON: {e}\nResponse: {response_text[:500]}")
                     data = self._fallback_score(candidate_data)
             else:
                 logger.error(f"No JSON found in response: {response_text[:500]}")
@@ -79,7 +74,6 @@ class ScoringService:
         authenticity = clamp(data.get("authenticity_index", 50))
         ai_prob = clamp(data.get("ai_probability", 50))
 
-        # Recalculate overall score with the defined weights
         overall = (
             hard_skills * 0.25
             + growth * 0.30
@@ -120,7 +114,6 @@ class ScoringService:
         }
 
     def _fallback_score(self, candidate_data: dict) -> dict:
-        """Return a neutral fallback score when parsing fails."""
         return {
             "hard_skills_score": 50.0,
             "growth_trajectory": 50.0,
