@@ -4,7 +4,7 @@ import re
 import logging
 from typing import Optional
 
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 from prompts import build_prompt
@@ -19,21 +19,17 @@ class ScoringService:
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             raise ValueError("GEMINI_API_KEY environment variable is not set")
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(
-            model_name="gemini-2.0-flash",
-            generation_config=genai.GenerationConfig(
-                temperature=0.3,
-                max_output_tokens=2048,
-            )
-        )
+        self.client = genai.Client(api_key=api_key)
 
     def score_candidate(self, candidate_data: dict) -> Optional[dict]:
         system_prompt, user_prompt = build_prompt(candidate_data)
         full_prompt = f"{system_prompt}\n\n{user_prompt}"
 
         try:
-            response = self.model.generate_content(full_prompt)
+            response = self.client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=full_prompt,
+            )
             response_text = response.text.strip()
             return self._parse_response(response_text, candidate_data)
 
