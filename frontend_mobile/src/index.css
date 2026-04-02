@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #0f0f13;
+  color: #e5e7eb;
+  min-height: 100dvh;
+}
+
+@layer components {
+  .input-field {
+    @apply w-full bg-surface-300 border border-surface-400 rounded-xl px-4 py-3
+           text-white placeholder-gray-500 text-base
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+           transition-all duration-150;
+  }
+
+  .btn-primary {
+    @apply w-full bg-primary-600 hover:bg-primary-500 active:bg-primary-600
+           text-white font-semibold py-3.5 px-6 rounded-xl
+           transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed
+           flex items-center justify-center gap-2;
+  }
+
+  .btn-secondary {
+    @apply w-full bg-surface-300 hover:bg-surface-400 active:bg-surface-300
+           text-gray-300 font-medium py-3.5 px-6 rounded-xl
+           transition-all duration-150 flex items-center justify-center gap-2;
+  }
+
+  .card {
+    @apply bg-surface-200 border border-surface-400 rounded-2xl;
+  }
+}
+
+textarea.input-field {
+  resize: none;
+  min-height: 120px;
+}
