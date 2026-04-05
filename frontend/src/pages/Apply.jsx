@@ -11,7 +11,6 @@ export default function Apply() {
     age: "",
     city: "",
     school_type: "regular",
-    email: "",
     achievements_text: "",
     essay_text: "",
   });
@@ -105,7 +104,7 @@ export default function Apply() {
         setTimeout(() => window.Telegram.WebApp.close(), 2500);
       }
     } catch (err) {
-      alert("Ошибка отправки заявки.");
+      alert("Ошибка отправки заявки. Убедитесь, что вы открыли форму через Telegram бота.");
     } finally {
       setLoading(false);
     }
@@ -161,16 +160,6 @@ export default function Apply() {
           </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">Email (для уведомления о зачислении)</label>
-          <input 
-            type="email" required
-            placeholder="example@mail.com"
-            className="input-base"
-            value={formData.email}
-            onChange={e => setFormData({...formData, email: e.target.value})}
-          />
-        </div>
 
         <div>
           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">Тип школы</label>
