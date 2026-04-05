@@ -88,7 +88,7 @@ export default function Apply() {
     };
 
     try {
-      const BE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+      const BE_URL = "https://web-production-d3ed.up.railway.app";
       const res = await fetch(`${BE_URL}/apply/web`, {
         method: "POST",
         headers: { 
