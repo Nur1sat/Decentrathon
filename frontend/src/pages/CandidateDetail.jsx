@@ -16,6 +16,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { getCandidate, scoreCandidate } from "../api/client.js";
+import Sidebar from "../components/Sidebar.jsx";
 import RadarChart from "../components/RadarChart.jsx";
 import AuthenticityHighlight from "../components/AuthenticityHighlight.jsx";
 import FeedbackButton from "../components/FeedbackButton.jsx";
@@ -153,56 +154,55 @@ export default function CandidateDetail() {
   const schoolCfg = SCHOOL_TYPE_CONFIG[candidate.school_type] || SCHOOL_TYPE_CONFIG.regular;
 
   return (
-    <div className="min-h-screen bg-surface-100">
-      {/* Header */}
-      <header className="border-b border-surface-400 bg-surface-200/80 backdrop-blur sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate("/")}
-              className="btn-secondary text-xs gap-1.5 py-1.5"
-            >
-              <ArrowLeft size={13} /> Назад
-            </button>
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-600 to-violet-600 flex items-center justify-center">
-                <Eye size={14} className="text-white" />
-              </div>
-              <span className="text-sm font-bold text-gradient">inVision Lens</span>
+    <div className="min-h-screen bg-surface-100 flex">
+      <Sidebar />
+
+      <div className="flex-1 lg:ml-64">
+        {/* Header */}
+        <header className="border-b border-surface-400 bg-surface-100/80 backdrop-blur-xl sticky top-0 z-10">
+          <div className="px-8 py-5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate("/")}
+                className="btn-secondary text-xs gap-1.5 py-1.5"
+              >
+                <ArrowLeft size={13} /> К списку
+              </button>
+            </div>
+            <div className="flex items-center gap-3">
+              {!latestScore && (
+                <button
+                  onClick={handleScore}
+                  disabled={scoring}
+                  className="btn-primary text-xs gap-1.5"
+                >
+                  {scoring ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : (
+                    <Play size={13} />
+                  )}
+                  {scoring ? "Анализ..." : "Запустить анализ"}
+                </button>
+              )}
+              {latestScore && (
+                <button
+                  onClick={handleScore}
+                  disabled={scoring}
+                  className="btn-secondary text-xs gap-1.5"
+                >
+                  {scoring ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : (
+                    <RefreshCw size={13} />
+                  )}
+                  Повторный анализ
+                </button>
+              )}
             </div>
           </div>
-          {!latestScore && (
-            <button
-              onClick={handleScore}
-              disabled={scoring}
-              className="btn-primary text-xs gap-1.5"
-            >
-              {scoring ? (
-                <Loader2 size={13} className="animate-spin" />
-              ) : (
-                <Play size={13} />
-              )}
-              {scoring ? "Анализ..." : "Запустить анализ"}
-            </button>
-          )}
-          {latestScore && (
-            <button
-              onClick={handleScore}
-              disabled={scoring}
-              className="btn-secondary text-xs gap-1.5"
-            >
-              {scoring ? (
-                <Loader2 size={13} className="animate-spin" />
-              ) : (
-                <RefreshCw size={13} />
-              )}
-              Повторный анализ
-            </button>
-          )}
-        </div>
-      </header>
+        </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
+        <main className="px-8 py-8">
         {/* Error banner */}
         {error && (
           <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl mb-6">
@@ -421,7 +421,8 @@ export default function CandidateDetail() {
             </div>
           )}
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

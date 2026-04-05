@@ -1,87 +1,141 @@
-import React from "react";
-import {
-  Radar,
-  RadarChart as RechartsRadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+import React, { useMemo } from "react";
 
 const AXES = [
   { key: "hard_skills_score", label: "Hard Skills" },
-  { key: "growth_trajectory", label: "Траектория роста" },
+  { key: "growth_trajectory", label: "Рост" },
   { key: "leadership_potential", label: "Лидерство" },
   { key: "authenticity_index", label: "Аутентичность" },
+  { key: "originality", label: "Оригинальность" },
 ];
 
-const CustomTooltip = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    const d = payload[0].payload;
-    return (
-      <div className="bg-surface-200 border border-surface-400 rounded-lg p-3 text-sm shadow-xl">
-        <p className="font-semibold text-white mb-1">{d.subject}</p>
-        <p className="text-primary-400 font-bold text-lg">{d.value}</p>
-        <p className="text-gray-400 text-xs">из 100</p>
-      </div>
-    );
-  }
-  return null;
-};
-
 export default function RadarChart({ scores }) {
-  if (!scores) {
-    return (
-      <div className="flex items-center justify-center h-64 text-gray-500 text-sm">
-        Нет данных для отображения
-      </div>
-    );
-  }
+  const size = 240;
+  const cx = size / 2;
+  const cy = size / 2;
+  const levels = 4;
+  const maxR = size / 2 - 30;
 
-  const data = AXES.map(({ key, label }) => ({
-    subject: label,
-    value: Math.round(scores[key] ?? 0),
-    fullMark: 100,
-  }));
+  const angleStep = (2 * Math.PI) / AXES.length;
+  const startAngle = -Math.PI / 2;
+
+  const getPoint = (index, value) => {
+    const angle = startAngle + index * angleStep;
+    const r = (value / 100) * maxR;
+    return {
+      x: cx + r * Math.cos(angle),
+      y: cy + r * Math.sin(angle),
+    };
+  };
+
+  const gridLevels = useMemo(() => {
+    return Array.from({ length: levels }, (_, li) => {
+      const r = ((li + 1) / levels) * maxR;
+      const points = AXES.map((_, i) => {
+        const angle = startAngle + i * angleStep;
+        return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
+      }).join(" ");
+      return points;
+    });
+  }, []);
+
+  const dataPoints = AXES.map((axis, i) =>
+    getPoint(i, scores[axis.key] ?? 0)
+  );
+  const dataPath = dataPoints.map((p) => `${p.x},${p.y}`).join(" ");
 
   return (
-    <div className="w-full h-72">
-      <ResponsiveContainer width="100%" height="100%">
-        <RechartsRadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
-          <PolarGrid
-            stroke="#2a2a4a"
-            strokeDasharray="3 3"
+    <div className="flex flex-col items-center">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <defs>
+          <linearGradient id="radarFill" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#C1F11D" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.08" />
+          </linearGradient>
+          <filter id="glowFilter">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* Grid levels */}
+        {gridLevels.map((points, i) => (
+          <polygon
+            key={i}
+            points={points}
+            fill="none"
+            stroke="rgba(255,255,255,0.06)"
+            strokeWidth="1"
           />
-          <PolarAngleAxis
-            dataKey="subject"
-            tick={{
-              fill: "#a5b4fc",
-              fontSize: 12,
-              fontWeight: 500,
-            }}
-            stroke="#2a2a4a"
+        ))}
+
+        {/* Axis lines */}
+        {AXES.map((_, i) => {
+          const p = getPoint(i, 100);
+          return (
+            <line
+              key={i}
+              x1={cx}
+              y1={cy}
+              x2={p.x}
+              y2={p.y}
+              stroke="rgba(255,255,255,0.06)"
+              strokeWidth="1"
+            />
+          );
+        })}
+
+        {/* Data polygon */}
+        <polygon
+          points={dataPath}
+          fill="url(#radarFill)"
+          stroke="#C1F11D"
+          strokeWidth="2"
+        />
+
+        {/* Data points */}
+        {dataPoints.map((p, i) => (
+          <circle
+            key={i}
+            cx={p.x}
+            cy={p.y}
+            r="4"
+            fill="#C1F11D"
+            stroke="#09090f"
+            strokeWidth="2"
           />
-          <PolarRadiusAxis
-            angle={90}
-            domain={[0, 100]}
-            tick={{ fill: "#6b7280", fontSize: 10 }}
-            stroke="#1a1a2e"
-            tickCount={5}
-          />
-          <Radar
-            name="Кандидат"
-            dataKey="value"
-            stroke="#818cf8"
-            fill="#6366f1"
-            fillOpacity={0.35}
-            strokeWidth={2}
-            dot={{ fill: "#a5b4fc", strokeWidth: 0, r: 4 }}
-            activeDot={{ r: 6, fill: "#c7d2fe", strokeWidth: 0 }}
-          />
-          <Tooltip content={<CustomTooltip />} />
-        </RechartsRadarChart>
-      </ResponsiveContainer>
+        ))}
+
+        {/* Labels */}
+        {AXES.map((axis, i) => {
+          const p = getPoint(i, 120);
+          const val = Math.round(scores[axis.key] ?? 0);
+          return (
+            <g key={i}>
+              <text
+                x={p.x}
+                y={p.y - 6}
+                textAnchor="middle"
+                className="text-[9px] font-semibold uppercase tracking-wider"
+                fill="#6b7280"
+              >
+                {axis.label}
+              </text>
+              <text
+                x={p.x}
+                y={p.y + 8}
+                textAnchor="middle"
+                className="text-[11px] font-bold"
+                fill="#C1F11D"
+              >
+                {val}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
     </div>
   );
 }

@@ -17,11 +17,14 @@ logger = logging.getLogger(__name__)
 
 class ScoringService:
     def __init__(self):
-        api_key = os.getenv("OPENAI_API_KEY")
+        api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
-            raise ValueError("OPENAI_API_KEY environment variable is not set")
-        self.client = OpenAI(api_key=api_key)
-        self.model = "gpt-4o-mini"
+            raise ValueError("GROQ_API_KEY environment variable is not set")
+        self.client = OpenAI(
+            api_key=api_key,
+            base_url="https://api.groq.com/openai/v1",
+        )
+        self.model = "llama-3.3-70b-versatile"
 
     def score_candidate(self, candidate_data: dict) -> Optional[dict]:
         # Anonymize PII before it reaches the AI model

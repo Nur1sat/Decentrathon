@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FileText, ArrowRight, ArrowLeft, Lightbulb } from "lucide-react";
 
 const PROMPTS = [
-  "Почему именно inDrive University?",
+  "Почему именно HI PO Program?",
   "Какую проблему вы хотите решить в будущем?",
   "Расскажите о моменте, когда вы поняли, чем хотите заниматься.",
   "Что отличает вас от других кандидатов?",

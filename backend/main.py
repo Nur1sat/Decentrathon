@@ -43,13 +43,13 @@ def _check_rate_limit(ip: str) -> bool:
 
 def _make_ref(candidate_id: int, full_name: str) -> str:
     """Generate a short opaque application reference shown to the applicant."""
-    raw = f"{candidate_id}:{full_name}:invision"
+    raw = f"{candidate_id}:{full_name}:hipo"
     return "APP-" + hashlib.sha256(raw.encode()).hexdigest()[:8].upper()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="inVision Lens API", version="1.0.0")
+app = FastAPI(title="HI PO API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -74,7 +74,7 @@ def startup_event():
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "service": "inVision Lens API"}
+    return {"status": "ok", "service": "HI PO API"}
 
 
 @app.get("/candidates", response_model=List[CandidateOut])

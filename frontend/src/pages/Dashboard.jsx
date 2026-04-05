@@ -1,16 +1,54 @@
 import React, { useState, useEffect } from "react";
-import { Users, TrendingUp, Bot, RefreshCw, Eye, Zap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  Users,
+  TrendingUp,
+  Bot,
+  RefreshCw,
+  Zap,
+  Brain,
+  Search,
+  ChevronRight,
+} from "lucide-react";
+import Sidebar from "../components/Sidebar.jsx";
 import { getCandidates, scoreCandidate } from "../api/client.js";
 import CandidateTable from "../components/CandidateTable.jsx";
 
-function StatCard({ icon, label, value, sub, color = "text-primary-400" }) {
+
+
+function StatCard({ icon: Icon, label, value, sub, variant = "default" }) {
+  const variants = {
+    default: "card",
+    green: "card-glow-green",
+    cyan: "card-glow-cyan",
+    red: "card-glow-red",
+  };
+
+  const iconColors = {
+    default: "text-gray-400 bg-surface-300",
+    green: "text-neon-green bg-neon-green/10",
+    cyan: "text-neon-cyan bg-neon-cyan/10",
+    red: "text-neon-red bg-neon-red/10",
+  };
+
+  const numColors = {
+    default: "text-white",
+    green: "text-neon-green",
+    cyan: "text-neon-cyan",
+    red: "text-neon-red",
+  };
+
   return (
-    <div className="card p-5 flex items-start gap-4">
-      <div className={`p-2.5 rounded-lg bg-surface-300 ${color}`}>{icon}</div>
-      <div>
-        <p className="text-2xl font-bold text-white">{value}</p>
-        <p className="text-sm font-medium text-gray-300 mt-0.5">{label}</p>
-        {sub && <p className="text-xs text-gray-500 mt-0.5">{sub}</p>}
+    <div className={`${variants[variant]} p-5`}>
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-2">{label}</p>
+          <p className={`stat-number ${numColors[variant]}`}>{value}</p>
+          {sub && <p className="text-xs text-gray-500 mt-1.5">{sub}</p>}
+        </div>
+        <div className={`p-2.5 rounded-xl ${iconColors[variant]}`}>
+          <Icon size={20} />
+        </div>
       </div>
     </div>
   );
@@ -19,14 +57,14 @@ function StatCard({ icon, label, value, sub, color = "text-primary-400" }) {
 function EmptyState() {
   return (
     <div className="text-center py-20">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-surface-300 mb-4">
+      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-surface-300 mb-4">
         <Users size={28} className="text-gray-500" />
       </div>
       <h3 className="text-lg font-semibold text-gray-300 mb-2">Кандидатов пока нет</h3>
       <p className="text-gray-500 text-sm max-w-sm mx-auto">
-        Запустите seed-скрипт на бэкенде, чтобы заполнить базу тестовыми кандидатами.
+        Запустите seed-скрипт на бэкенде.
       </p>
-      <pre className="mt-4 inline-block text-xs bg-surface-300 border border-surface-400 text-green-400 px-4 py-3 rounded-lg">
+      <pre className="mt-4 inline-block text-xs bg-surface-300 border border-surface-400 text-neon-green px-4 py-3 rounded-xl">
         cd backend && python seed_data.py
       </pre>
     </div>
@@ -34,6 +72,7 @@ function EmptyState() {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -80,91 +119,121 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-surface-100">
-      {/* Header */}
-      <header className="border-b border-surface-400 bg-surface-200/80 backdrop-blur sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary-600 to-violet-600 flex items-center justify-center">
-              <Eye size={18} className="text-white" />
-            </div>
+      <Sidebar />
+
+      <div className="lg:ml-64">
+        {/* Top bar */}
+        <header className="border-b border-surface-400 bg-surface-100/80 backdrop-blur-xl sticky top-0 z-10">
+          <div className="px-8 py-5 flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-bold text-gradient">inVision Lens</h1>
-              <p className="text-xs text-gray-500 -mt-0.5">Интеллектуальный скоринг потенциала</p>
+              <h1 className="text-xl font-bold text-white">
+                Добро пожаловать 👋
+              </h1>
+              <p className="text-sm text-gray-500 mt-0.5">
+                HI PO Intelligence · Скоринг потенциала кандидатов
+              </p>
             </div>
-          </div>
-          <button
-            onClick={handleScoreAll}
-            disabled={scoringAll || candidates.length === 0}
-            className="btn-primary text-xs gap-1.5"
-          >
-            {scoringAll ? (
-              <RefreshCw size={13} className="animate-spin" />
-            ) : (
-              <Zap size={13} />
-            )}
-            {scoringAll
-              ? `Анализ ${scoringProgress}/${candidates.length}...`
-              : "Проанализировать всех"}
-          </button>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Stats row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <StatCard
-            icon={<Users size={20} />}
-            label="Всего кандидатов"
-            value={candidates.length}
-            sub={`${scored.length} проанализировано`}
-            color="text-primary-400"
-          />
-          <StatCard
-            icon={<TrendingUp size={20} />}
-            label="Средний балл"
-            value={scored.length ? avgScore : "—"}
-            sub="по всем осям"
-            color="text-green-400"
-          />
-          <StatCard
-            icon={<Bot size={20} />}
-            label="Флаг AI-контента"
-            value={flaggedAI}
-            sub="вероятность AI > 60%"
-            color="text-orange-400"
-          />
-        </div>
-
-        {/* Main content */}
-        <div className="card overflow-hidden">
-          <div className="px-6 py-4 border-b border-surface-400 flex items-center justify-between">
-            <h2 className="font-semibold text-gray-200">Список кандидатов</h2>
-            {candidates.length > 0 && (
-              <span className="text-xs text-gray-500">
-                Нажмите на строку для подробной аналитики
-              </span>
-            )}
-          </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <RefreshCw size={24} className="animate-spin text-primary-400" />
-            </div>
-          ) : error ? (
-            <div className="text-center py-16">
-              <p className="text-red-400 font-medium mb-2">Ошибка загрузки данных</p>
-              <p className="text-gray-500 text-sm mb-4">{error}</p>
-              <button onClick={() => load()} className="btn-primary text-xs">
-                Попробовать снова
+            <div className="flex items-center gap-3">
+              {/* Search */}
+              <div className="hidden md:flex items-center gap-2 bg-surface-300 border border-surface-400 rounded-xl px-4 py-2.5">
+                <Search size={14} className="text-gray-500" />
+                <input
+                  type="text"
+                  placeholder="Поиск кандидатов..."
+                  className="bg-transparent text-sm text-gray-300 placeholder-gray-600 outline-none w-48"
+                />
+              </div>
+              {/* Score all button */}
+              <button
+                onClick={handleScoreAll}
+                disabled={scoringAll || candidates.length === 0}
+                className="btn-primary text-xs gap-1.5"
+              >
+                {scoringAll ? (
+                  <RefreshCw size={13} className="animate-spin" />
+                ) : (
+                  <Zap size={13} />
+                )}
+                {scoringAll
+                  ? `Анализ ${scoringProgress}/${candidates.length}...`
+                  : "Проанализировать всех"}
               </button>
             </div>
-          ) : candidates.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <CandidateTable candidates={candidates} />
-          )}
-        </div>
-      </main>
+          </div>
+        </header>
+
+        <main className="px-8 py-8">
+          {/* Stats row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <StatCard
+              icon={Users}
+              label="Всего кандидатов"
+              value={candidates.length}
+              sub={`${scored.length} проанализировано`}
+              variant="default"
+            />
+            <StatCard
+              icon={TrendingUp}
+              label="Средний балл"
+              value={scored.length ? avgScore : "—"}
+              sub="по всем осям"
+              variant="green"
+            />
+            <StatCard
+              icon={Bot}
+              label="AI Флаги"
+              value={flaggedAI}
+              sub="вероятность AI > 60%"
+              variant={flaggedAI > 0 ? "red" : "default"}
+            />
+            <StatCard
+              icon={Brain}
+              label="Средняя аутентичность"
+              value={scored.length ? Math.round(scored.reduce((s, c) => s + c.latest_score.authenticity_index, 0) / scored.length) + "%" : "—"}
+              sub="живой голос vs AI"
+              variant="cyan"
+            />
+          </div>
+
+          {/* Main content */}
+          <div className="card overflow-hidden">
+            <div className="px-6 py-5 border-b border-surface-400 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <h2 className="font-semibold text-white text-base">Список кандидатов</h2>
+                {candidates.length > 0 && (
+                  <span className="badge bg-surface-300 text-gray-400 text-[10px]">
+                    {candidates.length}
+                  </span>
+                )}
+              </div>
+              {candidates.length > 0 && (
+                <span className="text-xs text-gray-500 flex items-center gap-1">
+                  Нажмите для подробной аналитики
+                  <ChevronRight size={12} />
+                </span>
+              )}
+            </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-20">
+                <RefreshCw size={24} className="animate-spin text-neon-green" />
+              </div>
+            ) : error ? (
+              <div className="text-center py-16">
+                <p className="text-neon-red font-medium mb-2">Ошибка загрузки данных</p>
+                <p className="text-gray-500 text-sm mb-4">{error}</p>
+                <button onClick={() => load()} className="btn-primary text-xs">
+                  Попробовать снова
+                </button>
+              </div>
+            ) : candidates.length === 0 ? (
+              <EmptyState />
+            ) : (
+              <CandidateTable candidates={candidates} />
+            )}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

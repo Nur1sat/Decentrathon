@@ -1,5 +1,5 @@
 """
-inVision Lens — Telegram Bot for Applicants
+HI PO — Telegram Bot for Applicants
 ============================================
 Conversational intake form for HI PO applicants.
 
@@ -180,8 +180,8 @@ async def _submit_application(form: dict) -> dict | None:
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data.clear()
     await update.message.reply_text(
-        "👋 *Добро пожаловать в inVision Lens!*\n\n"
-        "Это интеллектуальная система отбора кандидатов inDrive University.\n\n"
+        "👋 *Добро пожаловать в HI PO!* \n\n"
+        "Это интеллектуальная система отбора кандидатов HI PO Program.\n\n"
         "Я помогу вам заполнить заявку. Процесс займёт 5–7 минут.\n\n"
         "🔒 *Ваши данные защищены:* перед анализом все личные данные "
         "автоматически обезличиваются — наш ИИ никогда не видит ваше имя.\n\n"
@@ -280,7 +280,7 @@ async def got_achievements(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     _data(context)["achievements_text"] = text
     await update.message.reply_text(
         "Отлично! Последний шаг — *мотивационное эссе* 📝\n\n"
-        "Расскажите: *почему inDrive University?* Что вас привело сюда?\n"
+        "Расскажите: *почему HI PO Program?* Что вас привело сюда?\n"
         "Какую проблему вы хотите решить? Что делает вас именно тем человеком?\n\n"
         "_Пишите от себя. Нам важен ваш голос, а не идеальный текст._\n\n"
         "💡 Вы также можете отправить *голосовое сообщение* — мы транскрибируем его автоматически.",

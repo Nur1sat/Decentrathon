@@ -1,4 +1,4 @@
-# inVision Lens — Essay Authenticity Checker
+# HI PO — Essay Authenticity Checker
 
 Инструмент для приёмной комиссии: загружаешь эссе кандидата — система показывает насколько оно настоящее и кто его написал.
 

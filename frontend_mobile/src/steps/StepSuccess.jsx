@@ -22,7 +22,7 @@ export default function StepSuccess({ ref_, onRestart }) {
       <div>
         <h2 className="text-2xl font-bold text-white mb-2">Заявка принята!</h2>
         <p className="text-gray-400 text-sm max-w-xs mx-auto">
-          Ваша заявка поступила в приёмную комиссию inDrive University.
+          Ваша заявка поступила в приёмную комиссию HI PO Program.
           Сохраните номер заявки — он понадобится для отслеживания статуса.
         </p>
       </div>

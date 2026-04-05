@@ -51,8 +51,8 @@ export default function App() {
           <Eye size={18} className="text-white" />
         </div>
         <div>
-          <h1 className="text-base font-bold text-white leading-tight">inVision Lens</h1>
-          <p className="text-xs text-gray-500">inDrive University · Подача заявки</p>
+          <h1 className="text-base font-bold text-white leading-tight">HI PO</h1>
+          <p className="text-xs text-gray-500">HI PO Program · Подача заявки</p>
         </div>
       </header>
 

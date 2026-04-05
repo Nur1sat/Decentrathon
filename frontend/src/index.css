@@ -15,65 +15,124 @@
 
   body {
     @apply bg-surface-100 text-gray-100 font-sans antialiased;
-    background-color: #0f0f1a;
+    background-color: #09090f;
     min-height: 100vh;
   }
 
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
 
   ::-webkit-scrollbar-track {
-    background: #1a1a2e;
+    background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #4338ca;
-    border-radius: 3px;
+    background: #22222e;
+    border-radius: 10px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #6366f1;
+    background: #33334a;
+  }
+
+  ::selection {
+    background: rgba(193, 241, 29, 0.2);
+    color: #fff;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-surface-200 border border-surface-400 rounded-xl;
+    @apply bg-surface-200 rounded-2xl;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .card-glass {
+    @apply rounded-2xl;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .card-glow-green {
+    @apply card;
+    border: 1px solid rgba(193, 241, 29, 0.4);
+  }
+
+  .card-glow-cyan {
+    @apply card;
+    border: 1px solid rgba(34, 211, 238, 0.4);
+  }
+
+  .card-glow-red {
+    @apply card;
+    border: 1px solid rgba(255, 77, 106, 0.4);
   }
 
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide;
   }
 
   .btn {
-    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 cursor-pointer;
+    @apply inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 cursor-pointer;
   }
 
   .btn-primary {
-    @apply btn bg-primary-600 hover:bg-primary-500 text-white;
+    @apply btn text-black font-semibold;
+    background: #C1F11D;
+  }
+
+  .btn-primary:hover {
+    background: #a8d619;
+    transform: translateY(-1px);
   }
 
   .btn-secondary {
-    @apply btn bg-surface-400 hover:bg-surface-500 text-gray-200;
+    @apply btn bg-surface-400 hover:bg-surface-500 text-gray-200 border border-surface-500;
   }
 
   .score-bar {
-    @apply h-1.5 rounded-full bg-surface-400 overflow-hidden;
+    @apply h-1.5 rounded-full overflow-hidden;
+    background: rgba(255, 255, 255, 0.06);
   }
 
   .score-bar-fill {
     @apply h-full rounded-full transition-all duration-700;
   }
+
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-400 transition-all duration-200 cursor-pointer;
+  }
+
+  .sidebar-link:hover {
+    @apply text-gray-200 bg-surface-300;
+  }
+
+  .sidebar-link.active {
+    @apply text-white;
+    background: rgba(193, 241, 29, 0.1);
+    border: 1px solid rgba(193, 241, 29, 0.2);
+  }
+
+  .stat-number {
+    @apply text-3xl font-bold tracking-tight;
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 @layer utilities {
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-violet-400;
+    color: #C1F11D;
   }
 
-  .glow {
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  .text-gradient-purple {
+    color: #a78bfa;
   }
+
+  .border-glow-green {
+    border: 1px solid rgba(193, 241, 29, 0.2);
+  }
+
+
 }
