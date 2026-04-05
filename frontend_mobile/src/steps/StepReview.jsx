@@ -60,9 +60,6 @@ export default function StepReview({ form, onBack, onSuccess }) {
   const essayPreview = form.essay_text.length > 300
     ? form.essay_text.slice(0, 300) + "…"
     : form.essay_text;
-  const achPreview = form.achievements_text.length > 300
-    ? form.achievements_text.slice(0, 300) + "…"
-    : form.achievements_text;
 
   return (
     <div className="flex flex-col gap-5">
@@ -75,10 +72,8 @@ export default function StepReview({ form, onBack, onSuccess }) {
 
       <div className="card px-4 py-1">
         <ReviewField label="Полное имя" value={form.full_name} />
-        <ReviewField label="Возраст" value={`${form.age} лет`} />
         <ReviewField label="Город" value={form.city} />
         <ReviewField label="Тип школы" value={SCHOOL_LABELS[form.school_type]} />
-        <ReviewField label="Достижения" value={achPreview} />
         <ReviewField label="Эссе" value={essayPreview} />
       </div>
 

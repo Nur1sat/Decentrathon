@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { User, MapPin, Calendar, ArrowRight } from "lucide-react";
+import { User, MapPin, ArrowRight } from "lucide-react";
 
 export default function StepPersonal({ form, update, onNext }) {
   const [errors, setErrors] = useState({});
@@ -7,9 +7,6 @@ export default function StepPersonal({ form, update, onNext }) {
   const validate = () => {
     const e = {};
     if (form.full_name.trim().length < 3) e.full_name = "Введите полное ФИО";
-    const age = parseInt(form.age);
-    if (!form.age || isNaN(age) || age < 10 || age > 35)
-      e.age = "Возраст от 10 до 35 лет";
     if (form.city.trim().length < 2) e.city = "Введите название города";
     return e;
   };
@@ -47,24 +44,6 @@ export default function StepPersonal({ form, update, onNext }) {
           {...field("full_name")}
         />
         {errors.full_name && <p className="text-xs text-red-400 mt-1">{errors.full_name}</p>}
-      </div>
-
-      {/* Age */}
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
-          <Calendar size={13} className="inline mr-1.5 text-primary-400" />
-          Возраст
-        </label>
-        <input
-          className={`input-field ${errors.age ? "border-red-500" : ""}`}
-          placeholder="17"
-          type="number"
-          inputMode="numeric"
-          min={10}
-          max={35}
-          {...field("age")}
-        />
-        {errors.age && <p className="text-xs text-red-400 mt-1">{errors.age}</p>}
       </div>
 
       {/* City */}

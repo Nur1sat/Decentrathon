@@ -5,9 +5,9 @@ export default {
     extend: {
       colors: {
         primary: {
-          400: "#a78bfa",
-          500: "#8b5cf6",
-          600: "#7c3aed",
+          400: "#d9ff4d",
+          500: "#c8f000",
+          600: "#aacc00",
         },
         surface: {
           100: "#0f0f13",

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import ProgressBar from "./components/ProgressBar.jsx";
 import StepPersonal from "./steps/StepPersonal.jsx";
 import StepSchool from "./steps/StepSchool.jsx";
-import StepAchievements from "./steps/StepAchievements.jsx";
 import StepEssay from "./steps/StepEssay.jsx";
 import StepReview from "./steps/StepReview.jsx";
 import StepSuccess from "./steps/StepSuccess.jsx";
@@ -11,17 +10,14 @@ import { Eye } from "lucide-react";
 const STEPS = [
   { label: "Данные" },
   { label: "Школа" },
-  { label: "Успехи" },
   { label: "Эссе" },
   { label: "Отправка" },
 ];
 
 const INITIAL_FORM = {
   full_name: "",
-  age: "",
   city: "",
   school_type: "",
-  achievements_text: "",
   essay_text: "",
 };
 
@@ -36,10 +32,10 @@ export default function App() {
 
   const handleSuccess = (ref) => {
     setApplicationRef(ref);
-    setStep(5); // success screen
+    setStep(4); // success screen
   };
 
-  if (step === 5) {
+  if (step === 4) {
     return <StepSuccess ref_={applicationRef} onRestart={() => { setForm(INITIAL_FORM); setStep(0); setApplicationRef(null); }} />;
   }
 
@@ -65,9 +61,8 @@ export default function App() {
       <div className="flex-1 px-5 pb-8">
         {step === 0 && <StepPersonal form={form} update={update} onNext={next} />}
         {step === 1 && <StepSchool form={form} update={update} onNext={next} onBack={back} />}
-        {step === 2 && <StepAchievements form={form} update={update} onNext={next} onBack={back} />}
-        {step === 3 && <StepEssay form={form} update={update} onNext={next} onBack={back} />}
-        {step === 4 && <StepReview form={form} onBack={back} onSuccess={handleSuccess} />}
+        {step === 2 && <StepEssay form={form} update={update} onNext={next} onBack={back} />}
+        {step === 3 && <StepReview form={form} onBack={back} onSuccess={handleSuccess} />}
       </div>
     </div>
   );
