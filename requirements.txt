@@ -1,1 +1,13 @@
--r backend/requirements.txt
+# Keep this file in sync with backend/requirements.txt.
+# Railpack may install root dependencies before the full repo tree is available.
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+sqlalchemy>=2.0.35
+psycopg2-binary==2.9.10
+openai==1.51.0
+python-dotenv==1.0.1
+pydantic==2.9.2
+httpx==0.27.0
+alembic==1.13.1
+aiosmtplib==3.0.1
+gunicorn==22.0.0
