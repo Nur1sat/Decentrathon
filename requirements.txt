@@ -1,5 +1,5 @@
-# Keep this file in sync with backend/requirements.txt.
-# Railpack may install root dependencies before the full repo tree is available.
+# Keep this file in sync with backend/requirements.txt and telegram_bot/requirements.txt.
+# Railway services that build from the repo root need both backend and bot deps here.
 fastapi==0.111.0
 uvicorn[standard]==0.29.0
 sqlalchemy>=2.0.35
@@ -11,3 +11,5 @@ httpx==0.27.0
 alembic==1.13.1
 aiosmtplib==3.0.1
 gunicorn==22.0.0
+python-telegram-bot==21.9
+groq==0.9.0
