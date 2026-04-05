@@ -87,3 +87,30 @@ npm run dev
 | `POST` | `/candidates/{id}/score` | Запустить анализ |
 | `POST` | `/candidates/{id}/feedback` | Оценка комиссии (agree/disagree) |
 | `GET` | `/health` | Health check |
+
+## 🚀 Deployment (Railway)
+
+The platform is configured for deployment on [Railway](https://railway.app) as a monorepo.
+
+### 1. Project Setup
+- Connect your GitHub repository to a new Railway project.
+- Railway will detect the `nixpacks.toml` and `Procfile`.
+
+### 2. Environment Variables
+Add the following variables to your Railway service:
+- `DATABASE_URL`: (Railway will provide this after you add a PostgreSQL plugin).
+- `GROQ_API_KEY`: Your Groq Cloud API key.
+- `TELEGRAM_BOT_TOKEN`: From BotFather.
+- `VITE_BACKEND_URL`: The domain Railway assigns to your service (e.g., `https://your-app-production.up.railway.app`).
+- `SMTP_SERVER`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`: For email notifications.
+
+### 3. Services
+In the Railway dashboard:
+- **Web Service**: Runs the FastAPI backend.
+- **Worker Service**: Create a second service pointing to the same repo, but set the start command to `cd telegram_bot && python bot.py`.
+
+### 4. Database Migration
+After the first deploy, run the migration script via Railway's terminal or as a one-time command:
+```bash
+cd backend && python migrate.py
+```

@@ -8,6 +8,8 @@ load_dotenv()
 
 DEFAULT_SQLITE_URL = "sqlite:///./decentra.db"
 DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_SQLITE_URL)
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 engine_kwargs = {"echo": False}
 if DATABASE_URL.startswith("sqlite"):
