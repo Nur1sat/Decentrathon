@@ -94,7 +94,7 @@ The platform is configured for deployment on [Railway](https://railway.app) as a
 
 ### 1. Project Setup
 - Connect your GitHub repository to a new Railway project.
-- Railway will detect the `nixpacks.toml` and `Procfile`.
+- Railway will detect the root `requirements.txt` and `railpack.json` for the backend service.
 
 ### 2. Environment Variables
 Add the following variables to your Railway service:
