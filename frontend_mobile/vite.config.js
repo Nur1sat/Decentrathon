@@ -7,8 +7,8 @@ export default defineConfig({
     port: 5174,
     allowedHosts: ["unyieldingly-chanceful-ann.ngrok-free.dev"],
     proxy: {
-      "/apply": "http://localhost:8000",
-      "/submit": "http://localhost:8000",
+      "/apply": "https://decentrathon-production.up.railway.app",
+      "/submit": "https://decentrathon-production.up.railway.app",
     },
   },
 });
