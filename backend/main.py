@@ -1,12 +1,18 @@
 import hashlib
 import logging
 import time
+import os
+import httpx
+from dotenv import load_dotenv
 from collections import defaultdict
 from typing import List, Optional
+
+load_dotenv()
 
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from database import get_db, create_tables
 from models import (
@@ -200,6 +206,120 @@ def apply(
         ),
     )
 
+
+async def send_telegram_message(chat_id: str, text: str):
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    if not bot_token or not chat_id:
+        return
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    payload = {"chat_id": chat_id, "text": text, "parse_mode": "Markdown"}
+    try:
+        async with httpx.AsyncClient() as client:
+            await client.post(url, json=payload, timeout=10)
+    except Exception as e:
+        logger.error(f"Failed to send telegram message to {chat_id}: {e}")
+
+@app.post("/apply/web", response_model=ApplicationResult, status_code=201)
+async def apply_web(
+    payload: ApplicationSubmit,
+    db: Session = Depends(get_db),
+):
+    """
+    Endpoint specifically for the Telegram WebApp flow.
+    Saves biometrics, generates AI validation question, and pushes it to Telegram.
+    """
+    candidate = Candidate(
+        full_name=payload.full_name,
+        age=payload.age,
+        school_type=payload.school_type,
+        city=payload.city,
+        achievements_text=payload.achievements_text,
+        essay_text=payload.essay_text,
+        source=payload.source,
+        tg_chat_id=payload.tg_chat_id,
+        biometrics_data=payload.biometrics_data,
+        has_passed_verification=False
+    )
+    db.add(candidate)
+    db.commit()
+    db.refresh(candidate)
+
+    ref = _make_ref(candidate.id, payload.full_name)
+    logger.info(f"New application {ref} via WebApp with Biometrics! (tg={payload.tg_chat_id})")
+
+    # Generate validation question
+    if payload.tg_chat_id:
+        try:
+            service = ScoringService()
+            question = service.generate_validation_question(payload.essay_text)
+            candidate.validation_question = question
+            db.commit()
+            
+            # Send question directly via Telegram API
+            msg = (
+                f"🧠 *HI PO AI Verification*\n\n"
+                f"Мы получили твое эссе! Чтобы подтвердить авторство и перейти к следующему этапу, ответь на ИИ-вопрос по твоему тексту:\n\n"
+                f"👉 _{question}_\n\n"
+                f"(Напиши ответ ответным сообщением или запиши голосовое)"
+            )
+            await send_telegram_message(payload.tg_chat_id, msg)
+        except Exception as e:
+            logger.error(f"Error generating/sending validation question: {e}")
+
+    return ApplicationResult(
+        application_ref=ref,
+        message="Заявка принята, ожидайте вопрос в Telegram."
+    )
+
+class TelegramAnswer(BaseModel):
+    tg_chat_id: str
+    answer_text: str
+
+@app.post("/telegram/verify_answer")
+async def verify_answer(
+    payload: TelegramAnswer,
+    db: Session = Depends(get_db),
+):
+    candidate = db.query(Candidate).filter(
+        Candidate.tg_chat_id == payload.tg_chat_id
+    ).order_by(Candidate.id.desc()).first()
+    
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Кандидат не найден")
+
+    candidate.validation_answer = payload.answer_text
+    candidate.has_passed_verification = True
+    db.commit()
+
+    # Trigger final scoring
+    try:
+        service = ScoringService()
+        candidate_data = {
+            "full_name": candidate.full_name,
+            "age": candidate.age,
+            "school_type": candidate.school_type.value,
+            "city": candidate.city,
+            "achievements_text": candidate.achievements_text,
+            "essay_text": candidate.essay_text,
+            "biometrics_data": candidate.biometrics_data,
+            "validation_question": candidate.validation_question,
+            "validation_answer": candidate.validation_answer
+        }
+        score_data = service.score_candidate(candidate_data)
+        
+        score = Score(candidate_id=candidate.id, **score_data)
+        db.add(score)
+        db.commit()
+        db.refresh(score)
+        
+        return {
+            "status": "success", 
+            "authenticity_index": score.authenticity_index,
+            "score": score.overall_score
+        }
+    except Exception as e:
+        logger.error(f"Error during final scoring: {e}")
+        raise HTTPException(status_code=500, detail="Scoring error")
 
 @app.get("/stats")
 def get_stats(db: Session = Depends(get_db)):

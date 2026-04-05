@@ -69,6 +69,10 @@ USER_PROMPT_TEMPLATE = """Оцени следующего кандидата:
 ЭССЕ:
 {essay_text}
 
+=== ДОПОЛНИТЕЛЬНАЯ БИОМЕТРИЯ (ДЛЯ ПРОВЕРКИ АУТЕНТИЧНОСТИ) ===
+{biometrics_info}
+
+{verification_info}
 ---
 
 Верни JSON со следующими полями (строго этот формат, без лишних полей):
@@ -82,11 +86,8 @@ USER_PROMPT_TEMPLATE = """Оцени следующего кандидата:
   "reality_grounding": <число 0-100, насколько текст связан с реальными фактами, датами, местами, именами>,
   "personal_experience": <число 0-100, есть ли личные истории, эмоции, уязвимость, конкретные воспоминания>,
   "originality": <число 0-100, уникальность голоса vs шаблонность; 100 = очень живой и уникальный, 0 = полный набор клише>,
-  "authenticity_index": <среднее трёх: (reality_grounding + personal_experience + originality) / 3>,
-  "ai_probability": <число 0-100, вероятность что эссе написано AI;
-                     высокий балл = скорее всего AI;
-                     ищи: корпоративные клише, идеальную структуру без живого голоса,
-                     отсутствие конкретных деталей, слишком гладкие переходы>,
+  "authenticity_index": <среднее трёх: (reality_grounding + personal_experience + originality) / 3. УЧТИТЕ БИОМЕТРИЮ: если paste_count высокий или ритм 0, сильно снижайте.>,
+  "ai_probability": <число 0-100, вероятность что эссе написано AI; учитывайте биометрию и несовпадения в ответах>,
   "authenticity_fragments": [
     {{
       "quote": "<дословная подстрока из текста эссе — должна встречаться в тексте as-is>",
@@ -103,7 +104,7 @@ USER_PROMPT_TEMPLATE = """Оцени следующего кандидата:
   ],
   "overall_score": <взвешенное среднее: hard_skills*0.25 + growth_trajectory*0.30 + leadership_potential*0.25 + authenticity_index*0.20>,
   "strengths": [<2-3 строки на русском "Почему стоит обратить внимание на этого кандидата">],
-  "risks": [<1-2 строки на русском о рисках или тревожных сигналах>],
+  "risks": [<1-2 строки на русском о рисках или тревожных сигналах (например, высокий шанс ИИ)>],
   "leadership_quotes": [<1-2 прямые цитаты из эссе, показывающие лидерство или инициативу; если таких нет — пустой список>],
   "reasoning": "<2-3 предложения на русском, объясняющие общую оценку кандидата>"
 }}"""
@@ -114,12 +115,27 @@ SCHOOL_TYPE_TRANSLATIONS = {
     "rural": "Сельская школа",
 }
 
-
 def build_prompt(candidate_data: dict) -> tuple[str, str]:
     school_type_ru = SCHOOL_TYPE_TRANSLATIONS.get(
         candidate_data.get("school_type", "regular"),
         "Обычная городская школа"
     )
+
+    bio = candidate_data.get("biometrics_data") or {}
+    bio_text = "Нет данных."
+    if bio:
+        bio_text = f"Символов набрано: {bio.get('total_chars', 0)}\n"
+        bio_text += f"Количество вставок (Paste): {bio.get('paste_count', 0)} (событий)\n"
+        bio_text += f"Удалений (Backspace): {bio.get('backspaces', 0)}\n"
+        bio_text += f"Стандартное отклонение ритма: {bio.get('rhythm_variance_ms', 0)} ms\n"
+        bio_text += "(Аналитика: если Backspace = 0 и Paste > 0 — это копипаста 100%. Если отклонение ритма 0 — это скрипт автоматического ввода)."
+
+    ver_text = ""
+    vq = candidate_data.get("validation_question")
+    va = candidate_data.get("validation_answer")
+    if vq and va:
+        ver_text = f"=== ДИНАМИЧЕСКАЯ ВЕРИФИКАЦИЯ ===\nВопрос от ИИ: {vq}\nОтвет кандидата в Telegram: {va}\n(Аналитика: если ответ выдуман или противоречит деталям эссе — кандидат использовал ChatGPT для эссе!)"
+
     user_prompt = USER_PROMPT_TEMPLATE.format(
         full_name=candidate_data["full_name"],
         age=candidate_data["age"],
@@ -127,5 +143,7 @@ def build_prompt(candidate_data: dict) -> tuple[str, str]:
         city=candidate_data["city"],
         achievements_text=candidate_data["achievements_text"],
         essay_text=candidate_data["essay_text"],
+        biometrics_info=bio_text,
+        verification_info=ver_text,
     )
     return SYSTEM_PROMPT, user_prompt

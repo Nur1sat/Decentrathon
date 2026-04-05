@@ -38,8 +38,15 @@ class Candidate(Base):
     city = Column(String(255), nullable=False)
     achievements_text = Column(Text, nullable=False)
     essay_text = Column(Text, nullable=False)
-    # source: how the application was submitted (web_form, telegram, direct)
+    # source: how the application was submitted (web_form, telegram, telegram_webapp, direct)
     source = Column(String(50), nullable=False, default="direct")
+    
+    tg_chat_id = Column(String(50), nullable=True)
+    biometrics_data = Column(JSON, nullable=True)
+    validation_question = Column(Text, nullable=True)
+    validation_answer = Column(Text, nullable=True)
+    has_passed_verification = Column(Boolean, nullable=True)
+    
     created_at = Column(DateTime, default=datetime.utcnow)
 
     scores = relationship(
@@ -119,6 +126,8 @@ class ApplicationSubmit(BaseModel):
     achievements_text: str
     essay_text: str
     source: str = "web_form"
+    tg_chat_id: Optional[str] = None
+    biometrics_data: Optional[dict] = None
 
 
 class ApplicationResult(BaseModel):
