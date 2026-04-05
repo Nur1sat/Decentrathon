@@ -26,19 +26,24 @@ FRONTEND_WEBAPP_URL = os.getenv("FRONTEND_WEBAPP_URL", "http://localhost:5173/ap
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = update.effective_chat.id
-    
-    # Construct the Web App URL passing the chat_id in query params
+
     webapp_url = f"{FRONTEND_WEBAPP_URL}?chat_id={chat_id}"
-    
+
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton(
+            text="📝 Открыть форму заявки",
+            web_app=WebAppInfo(url=webapp_url)
+        )]
+    ])
+
     await update.message.reply_text(
-        "👋 *Добро пожаловать в HI PO!* \n\n"
-        "Это интеллектуальная система отбора кандидатов HI PO Program.\n\n"
-        "Перейди по ссылке ниже, чтобы открыть безопасную форму заявки. Наш ИИ (Llama 3.3) проанализирует твое эссе мгновенно.\n\n"
-        f"🔗 [ОТКРЫТЬ ФОРМУ ЗАЯВКИ]({webapp_url})\n\n"
-        "*(Если ссылка не нажимается, скопируй её:)*\n"
-        f"`{webapp_url}`\n\n"
-        "👉 _После отправки формы не закрывай бот — мы пришлем тебе секретный проверочный вопрос._",
-        parse_mode="Markdown"
+        "👋 *Добро пожаловать в HI PO!*\n\n"
+        "Интеллектуальная система отбора кандидатов HI PO Program.\n\n"
+        "Нажми кнопку ниже, чтобы открыть форму прямо в Telegram. "
+        "Наш ИИ (Llama 3.3) проанализирует твоё эссе мгновенно.\n\n"
+        "👉 _После отправки формы не закрывай бот — мы пришлём тебе проверочный вопрос._",
+        parse_mode="Markdown",
+        reply_markup=keyboard,
     )
 
 

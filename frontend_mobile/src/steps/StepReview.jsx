@@ -26,31 +26,30 @@ export default function StepReview({ form, onBack, onSuccess }) {
     setSubmitting(true);
     setError("");
     try {
-      const resp = await fetch("/apply", {
+      const params = new URLSearchParams(window.location.search);
+      const tgChatId = params.get("chat_id") || null;
+
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
+      const resp = await fetch(`${backendUrl}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           full_name: form.full_name,
-          age: parseInt(form.age),
-          school_type: form.school_type,
           city: form.city,
-          achievements_text: form.achievements_text,
+          school_type: form.school_type,
           essay_text: form.essay_text,
-          source: "web_form",
+          tg_chat_id: tgChatId,
+          source: "telegram_webapp",
         }),
       });
 
-      if (resp.status === 429) {
-        setError("Слишком много заявок. Пожалуйста, попробуйте позже.");
-        return;
-      }
       if (!resp.ok) {
         const data = await resp.json().catch(() => ({}));
         setError(data.detail || "Ошибка отправки. Попробуйте ещё раз.");
         return;
       }
       const data = await resp.json();
-      onSuccess(data.application_ref);
+      onSuccess(data.id);
     } catch (e) {
       setError("Нет соединения с сервером. Проверьте интернет и попробуйте снова.");
     } finally {

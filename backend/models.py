@@ -139,6 +139,21 @@ class ApplicationResult(BaseModel):
     message: str
 
 
+class SimpleSubmit(BaseModel):
+    """Simplified submission: only the 4 required fields (ФИО, ГОРОД, ТИП ШКОЛЫ, ТЕКСТ ЭССЕ)."""
+    full_name: str
+    city: str
+    school_type: SchoolTypeEnum
+    essay_text: str
+    tg_chat_id: Optional[str] = None
+    source: str = "telegram_webapp"
+
+
+class SimpleSubmitResult(BaseModel):
+    id: int
+    message: str
+
+
 class ScoreOut(BaseModel):
     id: int
     candidate_id: int

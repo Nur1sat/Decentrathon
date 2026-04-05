@@ -29,6 +29,8 @@ from models import (
     FeedbackOut,
     ApplicationSubmit,
     ApplicationResult,
+    SimpleSubmit,
+    SimpleSubmitResult,
 )
 from pydantic import BaseModel
 from scoring import ScoringService
@@ -299,6 +301,52 @@ async def apply_web(
         application_ref=ref,
         message="Заявка принята, ожидайте вопрос в Telegram."
     )
+
+@app.post("/submit", response_model=SimpleSubmitResult, status_code=201)
+async def simple_submit(
+    payload: SimpleSubmit,
+    db: Session = Depends(get_db),
+):
+    """
+    Simplified submission endpoint for Telegram WebApp.
+    Accepts: ФИО, ГОРОД, ТИП ШКОЛЫ, ТЕКСТ ЭССЕ.
+    Returns the candidate ID.
+    """
+    candidate = Candidate(
+        full_name=payload.full_name,
+        city=payload.city,
+        school_type=payload.school_type,
+        essay_text=payload.essay_text,
+        age=0,
+        achievements_text="",
+        source=payload.source,
+        tg_chat_id=payload.tg_chat_id,
+    )
+    db.add(candidate)
+    db.commit()
+    db.refresh(candidate)
+
+    logger.info(f"Simple submission id={candidate.id} name={payload.full_name} city={payload.city} tg={payload.tg_chat_id}")
+
+    if payload.tg_chat_id:
+        try:
+            service = ScoringService()
+            question = service.generate_validation_question(payload.essay_text)
+            candidate.validation_question = question
+            candidate.has_passed_verification = False
+            db.commit()
+            msg = (
+                f"🧠 *HI PO AI Verification*\n\n"
+                f"Мы получили твоё эссе! Для подтверждения авторства ответь на вопрос:\n\n"
+                f"👉 _{question}_\n\n"
+                f"(Напиши ответ в чате)"
+            )
+            await send_telegram_message(payload.tg_chat_id, msg)
+        except Exception as e:
+            logger.error(f"Error in simple_submit validation: {e}")
+
+    return SimpleSubmitResult(id=candidate.id, message="Заявка принята!")
+
 
 class TelegramAnswer(BaseModel):
     tg_chat_id: str
