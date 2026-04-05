@@ -1,15 +1,6 @@
-[variants.backend]
-providers = ["python"]
-install = "cd backend && pip install -r requirements.txt"
-
-[variants.bot]
-providers = ["python"]
-install = "cd telegram_bot && pip install -r requirements.txt"
-
-[variants.frontend]
-providers = ["node"]
-install = "cd frontend && npm install"
-build = "cd frontend && npm run build"
+[build]
+providers = ["python", "node"]
+install = "cd backend && pip install -r requirements.txt && cd ../frontend && npm install"
 
 [start]
-cmd = "sh -c 'gunicorn --chdir backend main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT'"
+cmd = "gunicorn --chdir backend main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT"
