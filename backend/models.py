@@ -41,6 +41,8 @@ class Candidate(Base):
     # source: how the application was submitted (web_form, telegram, telegram_webapp, direct)
     source = Column(String(50), nullable=False, default="direct")
     
+    status = Column(String(50), nullable=False, default="pending")  # pending, accepted, rejected
+    
     tg_chat_id = Column(String(50), nullable=True)
     biometrics_data = Column(JSON, nullable=True)
     validation_question = Column(Text, nullable=True)
@@ -189,6 +191,7 @@ class CandidateOut(BaseModel):
     achievements_text: str
     essay_text: str
     source: str = "direct"
+    status: str = "pending"
     created_at: datetime
     latest_score: Optional[ScoreOut] = None
 
@@ -205,6 +208,7 @@ class CandidateDetailOut(BaseModel):
     achievements_text: str
     essay_text: str
     source: str = "direct"
+    status: str = "pending"
     created_at: datetime
     scores: List[ScoreOut] = []
     feedback_logs: List[FeedbackOut] = []

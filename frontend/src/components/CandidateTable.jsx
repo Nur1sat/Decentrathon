@@ -1,19 +1,41 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
-import { ChevronRight, AlertTriangle, CheckCircle, Minus } from "lucide-react";
+import { ChevronRight, AlertTriangle, CheckCircle, XCircle, Minus, Clock } from "lucide-react";
 
 const SCHOOL_LABELS = {
-  elite: { text: "Элитная", cls: "text-violet-400 bg-violet-500/10 border-violet-500/20" },
+  elite:   { text: "Элитная",   cls: "text-[#C1F11D] bg-[#C1F11D]/10 border-[#C1F11D]/20" },
   regular: { text: "Городская", cls: "text-gray-400 bg-gray-500/10 border-gray-500/20" },
-  rural: { text: "Сельская", cls: "text-neon-green bg-neon-green/10 border-neon-green/20" },
+  rural:   { text: "Сельская",  cls: "text-primary bg-primary/10 border-primary/20" },
 };
+
+function StatusBadge({ status }) {
+  if (status === "accepted") {
+    return (
+      <span className="badge bg-[#C1F11D]/10 text-[#C1F11D] border border-[#C1F11D]/30 gap-1">
+        <CheckCircle size={10} /> Зачислен
+      </span>
+    );
+  }
+  if (status === "rejected") {
+    return (
+      <span className="badge bg-red-500/10 text-red-400 border border-red-500/30 gap-1">
+        <XCircle size={10} /> Отклонен
+      </span>
+    );
+  }
+  return (
+    <span className="badge bg-surface-300 text-gray-400 border border-surface-400 gap-1">
+      <Clock size={10} /> Ожидает
+    </span>
+  );
+}
 
 function ScorePill({ value, colorClass }) {
   if (value == null) return <span className="text-gray-600">—</span>;
   const v = Math.round(value);
   const color =
-    v >= 75 ? "text-neon-green" : v >= 50 ? "text-neon-cyan" : v >= 30 ? "text-neon-orange" : "text-neon-red";
+    v >= 75 ? "text-[#C1F11D]" : v >= 50 ? "text-primary" : v >= 30 ? "text-amber-400" : "text-red-400";
   return <span className={clsx("font-bold tabular-nums text-sm", color)}>{v}</span>;
 }
 
@@ -35,13 +57,13 @@ function AiRiskBadge({ probability }) {
     );
   }
   return (
-    <span className="badge bg-neon-green/10 text-neon-green border border-neon-green/20 gap-1">
+    <span className="badge bg-primary/10 text-primary border border-primary/20 gap-1">
       <CheckCircle size={10} /> {p}%
     </span>
   );
 }
 
-function MiniBar({ value, color = "bg-neon-green" }) {
+function MiniBar({ value, color = "bg-primary" }) {
   if (value == null) return null;
   const pct = Math.min(100, Math.max(0, value));
   return (
@@ -57,6 +79,7 @@ export default function CandidateTable({ candidates }) {
   const cols = [
     { key: "name", label: "Кандидат", className: "text-left" },
     { key: "school", label: "Школа", className: "text-left" },
+    { key: "status", label: "Статус", className: "text-center" },
     { key: "overall", label: "Общий", className: "text-center" },
     { key: "hard", label: "Hard Skills", className: "text-center hidden md:table-cell" },
     { key: "growth", label: "Рост", className: "text-center hidden md:table-cell" },
@@ -96,7 +119,7 @@ export default function CandidateTable({ candidates }) {
               >
                 <td className="px-5 py-4">
                   <div>
-                    <p className="text-sm font-semibold text-white group-hover:text-neon-green transition-colors">
+                    <p className="text-sm font-semibold text-white group-hover:text-primary transition-colors">
                       {c.full_name}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">
@@ -108,6 +131,9 @@ export default function CandidateTable({ candidates }) {
                   <span className={clsx("badge border text-[10px]", school.cls)}>
                     {school.text}
                   </span>
+                </td>
+                <td className="px-5 py-4 text-center">
+                  <StatusBadge status={c.status} />
                 </td>
                 <td className="px-5 py-4 text-center">
                   <ScorePill value={s?.overall_score} />
@@ -130,7 +156,7 @@ export default function CandidateTable({ candidates }) {
                 <td className="px-3 py-4">
                   <ChevronRight
                     size={14}
-                    className="text-gray-600 group-hover:text-neon-green transition-colors"
+                    className="text-gray-600 group-hover:text-primary transition-colors"
                   />
                 </td>
               </tr>

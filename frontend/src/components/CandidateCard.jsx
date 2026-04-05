@@ -6,12 +6,12 @@ import { useNavigate } from "react-router-dom";
 const SCHOOL_TYPE_CONFIG = {
   elite:   { label: "Элитная",  color: "text-blue-400 bg-blue-500/10 border-blue-500/30" },
   regular: { label: "Городская", color: "text-gray-400 bg-gray-500/10 border-gray-500/30" },
-  rural:   { label: "Сельская",  color: "text-green-400 bg-green-500/10 border-green-500/30" },
+  rural:   { label: "Сельская",  color: "text-primary bg-primary/10 border-primary/30" },
 };
 
 function ScoreBadge({ value }) {
   const color =
-    value >= 70 ? "text-green-400" : value >= 50 ? "text-amber-400" : "text-red-400";
+    value >= 70 ? "text-primary" : value >= 50 ? "text-amber-400" : "text-red-400";
   return (
     <span className={clsx("text-2xl font-bold tabular-nums", color)}>
       {Math.round(value)}
@@ -84,9 +84,9 @@ export default function CandidateCard({ candidate, onClick }) {
             <span className="text-xs text-gray-400 w-6 text-right">{Math.round(score.hard_skills_score)}</span>
           </div>
           <div className="flex items-center gap-2">
-            <TrendingUp size={10} className="text-green-400 flex-shrink-0" />
+            <TrendingUp size={10} className="text-primary flex-shrink-0" />
             <span className="text-xs text-gray-500 w-24 flex-shrink-0">Рост</span>
-            <MiniBar value={score.growth_trajectory} color="bg-green-500" />
+            <MiniBar value={score.growth_trajectory} color="bg-primary" />
             <span className="text-xs text-gray-400 w-6 text-right">{Math.round(score.growth_trajectory)}</span>
           </div>
           <div className="flex items-center gap-2">

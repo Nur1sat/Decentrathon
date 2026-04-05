@@ -35,11 +35,11 @@ export default function FeedbackButton({ candidateId }) {
 
   if (submitted) {
     return (
-      <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
-        <CheckCircle2 size={20} className="text-green-400 flex-shrink-0" />
+      <div className="flex items-center gap-3 p-4 bg-[#C1F11D]/10 border border-[#C1F11D]/30 rounded-xl">
+        <CheckCircle2 size={20} className="text-[#C1F11D] flex-shrink-0" />
         <div>
-          <p className="text-green-400 font-semibold text-sm">Обратная связь получена</p>
-          <p className="text-green-300/60 text-xs mt-0.5">
+          <p className="text-[#C1F11D] font-semibold text-sm">Обратная связь получена</p>
+          <p className="text-[#C1F11D]/60 text-xs mt-0.5">
             {choice ? "Вы согласились с оценкой ИИ" : "Вы не согласились с оценкой ИИ"}
             {comment ? ` — «${comment}»` : ""}
           </p>
@@ -61,8 +61,8 @@ export default function FeedbackButton({ candidateId }) {
           className={clsx(
             "flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg border text-sm font-medium transition-all duration-200",
             choice === true
-              ? "bg-green-500/20 border-green-500 text-green-400"
-              : "bg-surface-300 border-surface-400 text-gray-400 hover:border-green-500/50 hover:text-green-400"
+              ? "bg-[#C1F11D]/20 border-[#C1F11D] text-[#C1F11D]"
+              : "bg-surface-300 border-surface-400 text-gray-400 hover:border-[#C1F11D]/50 hover:text-[#C1F11D]"
           )}
         >
           <ThumbsUp size={15} />

@@ -14,8 +14,11 @@ import {
   Brain,
   Zap,
   RefreshCw,
+  XCircle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
-import { getCandidate, scoreCandidate } from "../api/client.js";
+import { getCandidate, scoreCandidate, setCandidateStatus } from "../api/client.js";
 import Sidebar from "../components/Sidebar.jsx";
 import RadarChart from "../components/RadarChart.jsx";
 import AuthenticityHighlight from "../components/AuthenticityHighlight.jsx";
@@ -25,13 +28,13 @@ import PotentialTriggers from "../components/PotentialTriggers.jsx";
 const SCHOOL_TYPE_CONFIG = {
   elite:   { label: "Элитная школа",   color: "text-blue-400 bg-blue-500/10 border-blue-500/30" },
   regular: { label: "Городская школа", color: "text-gray-400 bg-gray-500/10 border-gray-500/30" },
-  rural:   { label: "Сельская школа",  color: "text-green-400 bg-green-500/10 border-green-500/30" },
+  rural:   { label: "Сельская школа",  color: "text-primary bg-primary/10 border-primary/30" },
 };
 
 const SCORE_AXES = [
   {
     key: "hard_skills_score",
-    label: "Hard Skills",
+    label: "Хард-скиллы",
     desc: "Формальные достижения: олимпиады, проекты, оценки",
     icon: <Star size={15} />,
     color: "bg-indigo-500",
@@ -42,8 +45,8 @@ const SCORE_AXES = [
     label: "Траектория роста",
     desc: "Результаты с учётом стартовых условий и типа школы",
     icon: <TrendingUp size={15} />,
-    color: "bg-green-500",
-    textColor: "text-green-400",
+    color: "bg-[#C1F11D]",
+    textColor: "text-[#C1F11D]",
   },
   {
     key: "leadership_potential",
@@ -75,7 +78,7 @@ function ScoreBar({ value, colorClass }) {
 function OverallScoreBadge({ value }) {
   const color =
     value >= 70
-      ? "text-green-400 border-green-500/30 bg-green-500/10"
+      ? "text-primary border-primary/30 bg-primary/10"
       : value >= 50
       ? "text-amber-400 border-amber-500/30 bg-amber-500/10"
       : "text-red-400 border-red-500/30 bg-red-500/10";
@@ -93,7 +96,10 @@ export default function CandidateDetail() {
   const [candidate, setCandidate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [scoring, setScoring] = useState(false);
+  const [decisionLoading, setDecisionLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [achievementsExpanded, setAchievementsExpanded] = useState(false);
+  const [essayExpanded, setEssayExpanded] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -122,6 +128,20 @@ export default function CandidateDetail() {
       setError(e.message);
     } finally {
       setScoring(false);
+    }
+  };
+
+  const handleDecision = async (status) => {
+    if (!window.confirm(`Вы уверены, что хотите ${status === "accepted" ? "ПРИНЯТЬ" : "ОТКЛОНИТЬ"} кандидата? Будет отправлено официальное письмо в Telegram.`)) return;
+    setDecisionLoading(true);
+    setError(null);
+    try {
+      await setCandidateStatus(id, status);
+      await load();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setDecisionLoading(false);
     }
   };
 
@@ -198,6 +218,26 @@ export default function CandidateDetail() {
                   Повторный анализ
                 </button>
               )}
+              {candidate.status === "pending" && latestScore && (
+                <>
+                  <button
+                    onClick={() => handleDecision("rejected")}
+                    disabled={decisionLoading || scoring}
+                    className="px-4 py-2 bg-transparent text-red-400 font-medium text-xs rounded-xl hover:bg-red-500/10 border border-red-500/30 transition-colors flex items-center gap-1.5"
+                  >
+                    {decisionLoading ? <Loader2 size={13} className="animate-spin" /> : <XCircle size={13} />}
+                    Отклонить
+                  </button>
+                  <button
+                    onClick={() => handleDecision("accepted")}
+                    disabled={decisionLoading || scoring}
+                    className="px-4 py-2 bg-[#C1F11D] text-black font-bold text-xs rounded-xl hover:bg-[#a8d619] transition-colors flex items-center gap-1.5"
+                  >
+                    {decisionLoading ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle size={13} />}
+                    Зачислить (Accept)
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </header>
@@ -208,6 +248,26 @@ export default function CandidateDetail() {
           <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl mb-6">
             <AlertTriangle size={18} className="text-red-400 flex-shrink-0" />
             <p className="text-red-400 text-sm">{error}</p>
+          </div>
+        )}
+
+        {/* Status Banner */}
+        {candidate.status === "accepted" && (
+          <div className="flex items-center gap-3 p-4 bg-[#C1F11D]/10 border border-[#C1F11D]/30 rounded-xl mb-6">
+            <CheckCircle size={20} className="text-[#C1F11D] flex-shrink-0" />
+            <div>
+              <h3 className="text-[#C1F11D] font-bold text-sm">Кандидат официально зачислен</h3>
+              <p className="text-[#C1F11D]/80 text-xs mt-0.5">Уведомление в Telegram было успешно отправлено.</p>
+            </div>
+          </div>
+        )}
+        {candidate.status === "rejected" && (
+          <div className="flex items-center gap-3 p-4 bg-surface-300 border border-surface-400 rounded-xl mb-6">
+            <XCircle size={20} className="text-gray-400 flex-shrink-0" />
+            <div>
+              <h3 className="text-gray-300 font-bold text-sm">Кандидат отклонен комиссией</h3>
+              <p className="text-gray-500 text-xs mt-0.5">Уведомление в Telegram было успешно отправлено.</p>
+            </div>
           </div>
         )}
 
@@ -224,8 +284,8 @@ export default function CandidateDetail() {
                   {schoolCfg.label}
                 </span>
                 {latestScore && (
-                  <span className="badge bg-surface-300 border border-surface-400 text-gray-400 gap-1">
-                    <CheckCircle size={11} className="text-green-400" />
+                  <span className="badge bg-[#C1F11D]/10 border border-[#C1F11D]/30 text-[#C1F11D] gap-1">
+                    <CheckCircle size={11} className="text-[#C1F11D]" />
                     Анализ завершён
                   </span>
                 )}
@@ -252,7 +312,7 @@ export default function CandidateDetail() {
 
               {/* Score breakdown */}
               <div className="card p-6">
-                <h2 className="text-sm font-semibold text-gray-300 mb-4">Детальные оценки</h2>
+                <h2 className="text-sm font-semibold text-gray-300 mb-4 uppercase tracking-widest">Детальные оценки</h2>
                 <div className="space-y-4">
                   {SCORE_AXES.map((axis) => (
                     <div key={axis.key}>
@@ -275,7 +335,7 @@ export default function CandidateDetail() {
               {/* AI Reasoning */}
               <div className="card p-6">
                 <h2 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
-                  <Brain size={15} className="text-violet-400" />
+                  <Brain size={15} className="text-[#C1F11D]" />
                   Заключение ИИ
                 </h2>
                 <p className="text-gray-300 text-sm leading-relaxed">{latestScore.reasoning}</p>
@@ -293,15 +353,15 @@ export default function CandidateDetail() {
               {/* Strengths */}
               {latestScore.strengths && latestScore.strengths.length > 0 && (
                 <div className="card p-6">
-                  <h2 className="text-sm font-semibold text-green-400 mb-4 flex items-center gap-2">
-                    <CheckCircle size={15} />
+                  <h2 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
+                    <CheckCircle size={15} className="text-[#C1F11D]" />
                     Сильные стороны
                   </h2>
                   <ul className="space-y-3">
                     {latestScore.strengths.map((s, i) => (
                       <li key={i} className="flex items-start gap-3">
-                        <span className="w-5 h-5 rounded-full bg-green-500/20 border border-green-500/40 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <span className="text-green-400 text-xs font-bold">{i + 1}</span>
+                        <span className="w-5 h-5 rounded-full bg-[#C1F11D]/20 border border-[#C1F11D]/40 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-[#C1F11D] text-xs font-bold">{i + 1}</span>
                         </span>
                         <p className="text-gray-300 text-sm leading-relaxed">{s}</p>
                       </li>
@@ -333,7 +393,7 @@ export default function CandidateDetail() {
               {/* Leadership quotes */}
               {latestScore.leadership_quotes && latestScore.leadership_quotes.length > 0 && (
                 <div className="card p-6">
-                  <h2 className="text-sm font-semibold text-violet-400 mb-4 flex items-center gap-2">
+                  <h2 className="text-sm font-semibold text-[#C1F11D] mb-4 flex items-center gap-2">
                     <Quote size={15} />
                     Цитаты лидерства
                   </h2>
@@ -341,7 +401,7 @@ export default function CandidateDetail() {
                     {latestScore.leadership_quotes.map((q, i) => (
                       <blockquote
                         key={i}
-                        className="border-l-2 border-violet-500 pl-4 py-1"
+                        className="border-l-2 border-[#C1F11D] pl-4 py-1"
                       >
                         <p className="text-gray-300 text-sm italic leading-relaxed">«{q}»</p>
                       </blockquote>
@@ -351,14 +411,28 @@ export default function CandidateDetail() {
               )}
 
               {/* Achievements */}
-              <div className="card p-6">
+              <div className="card p-6 relative">
                 <h2 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
-                  <Star size={15} className="text-primary-400" />
+                  <Star size={15} className="text-[#C1F11D]" />
                   Достижения
                 </h2>
-                <p className="text-gray-400 text-sm leading-relaxed whitespace-pre-line">
-                  {candidate.achievements_text}
-                </p>
+                <div className={clsx("transition-all duration-300 overflow-hidden relative", !achievementsExpanded && "max-h-24")}>
+                   <p className="text-gray-400 text-sm leading-relaxed whitespace-pre-line">
+                     {candidate.achievements_text}
+                   </p>
+                </div>
+                {candidate.achievements_text?.length > 150 && (
+                  <button 
+                    onClick={() => setAchievementsExpanded(!achievementsExpanded)}
+                    className="mt-4 flex items-center gap-1.5 text-xs font-bold text-[#C1F11D] hover:bg-[#C1F11D]/10 px-3 py-1.5 rounded-lg border border-[#C1F11D]/20 transition-all shadow-sm"
+                  >
+                    {achievementsExpanded ? (
+                      <> <ChevronUp size={14} /> Свернуть </>
+                    ) : (
+                      <> <ChevronDown size={14} /> Развернуть полностью </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -400,7 +474,7 @@ export default function CandidateDetail() {
         {/* Essay section — always shown */}
         <div className="card p-6 mt-6">
           <h2 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-            <Eye size={15} className="text-accent-cyan" />
+            <Eye size={15} className="text-[#C1F11D]" />
             Эссе кандидата
           </h2>
           {latestScore ? (
@@ -414,10 +488,24 @@ export default function CandidateDetail() {
               authenticityFragments={latestScore.authenticity_fragments}
             />
           ) : (
-            <div className="bg-surface-300 border border-surface-400 rounded-xl p-5 space-y-4">
-              {candidate.essay_text.split(/\n+/).filter(Boolean).map((para, i) => (
-                <p key={i} className="text-gray-300 text-sm leading-relaxed">{para}</p>
-              ))}
+            <div className="relative">
+              <div className={clsx("bg-surface-300 border border-surface-400 rounded-xl p-5 space-y-4 overflow-hidden transition-all duration-300 ease-in-out", !essayExpanded && "max-h-[300px]")}>
+                {candidate.essay_text.split(/\n+/).filter(Boolean).map((para, i) => (
+                  <p key={i} className="text-gray-300 text-sm leading-relaxed">{para}</p>
+                ))}
+              </div>
+              {candidate.essay_text?.length > 400 && (
+                <button 
+                  onClick={() => setEssayExpanded(!essayExpanded)}
+                  className="mt-4 flex items-center gap-1.5 text-xs font-bold text-[#C1F11D] hover:bg-[#C1F11D]/10 px-3 py-1.5 rounded-lg border border-[#C1F11D]/20 transition-all shadow-sm"
+                >
+                  {essayExpanded ? (
+                    <> <ChevronUp size={14} /> Свернуть </>
+                  ) : (
+                    <> <ChevronDown size={14} /> Развернуть эссе </>
+                  )}
+                </button>
+              )}
             </div>
           )}
         </div>

@@ -20,9 +20,9 @@ const TRIGGER_CONFIG = {
   social_impact: {
     label: "Социальный вклад",
     icon: <Shield size={13} />,
-    color: "text-green-400",
-    bg: "bg-green-500/10 border-green-500/30",
-    dot: "bg-green-500",
+    color: "text-primary",
+    bg: "bg-primary/10 border-primary/30",
+    dot: "bg-primary",
   },
   innovation: {
     label: "Инновация",

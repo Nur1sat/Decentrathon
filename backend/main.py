@@ -28,6 +28,7 @@ from models import (
     ApplicationSubmit,
     ApplicationResult,
 )
+from pydantic import BaseModel
 from scoring import ScoringService
 
 # Simple in-memory rate limiter: max 3 submissions per IP per hour
@@ -320,6 +321,50 @@ async def verify_answer(
     except Exception as e:
         logger.error(f"Error during final scoring: {e}")
         raise HTTPException(status_code=500, detail="Scoring error")
+
+
+class DecisionSubmit(BaseModel):
+    status: str  # 'accepted' or 'rejected'
+
+@app.post("/candidates/{candidate_id}/decision", response_model=CandidateOut)
+async def set_decision(
+    candidate_id: int,
+    payload: DecisionSubmit,
+    db: Session = Depends(get_db),
+):
+    candidate = db.query(Candidate).filter(Candidate.id == candidate_id).first()
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Кандидат не найден")
+
+    candidate.status = payload.status
+    db.commit()
+    db.refresh(candidate)
+
+    # Dispatch official telegram message
+    if candidate.tg_chat_id:
+        if payload.status == "accepted":
+            msg = (
+                f"🎓 *ОФИЦИАЛЬНОЕ УВЕДОМЛЕНИЕ О ЗАЧИСЛЕНИИ*\n\n"
+                f"Уважаемый(ая) *{candidate.full_name}*,\n\n"
+                f"От лица Приемной комиссии грантовой программы *HI PO*, мы рады сообщить, что ваша кандидатура была успешно отобрана по результатам независимой AI-оценки и решения комиссии.\n\n"
+                f"Мы были впечатлены вашими достижениями и высоким лидерским потенциалом. Добро пожаловать в число будущих лидеров Казахстана! Инструкции по дальнейшим шагам мы направим в ближайшее время.\n\n"
+                f"*С уважением, Приемная комиссия HI PO*"
+            )
+        elif payload.status == "rejected":
+            msg = (
+                f"📩 *УВЕДОМЛЕНИЕ ПРИЕМНОЙ КОМИССИИ*\n\n"
+                f"Уважаемый(ая) *{candidate.full_name}*,\n\n"
+                f"Благодарим вас за интерес к грантовой программе *HI PO*. В этом году конкурс оказался необычайно высоким, и, к сожалению, мы не можем предложить вам место в программе на данный момент.\n\n"
+                f"Мы высоко оцениваем ваши таланты и желаем успехов в ваших будущих академических начинаниях.\n\n"
+                f"*С уважением, Приемная комиссия HI PO*"
+            )
+        else:
+            msg = ""
+
+        if msg:
+            await send_telegram_message(candidate.tg_chat_id, msg)
+
+    return CandidateOut.model_validate(candidate)
 
 @app.get("/stats")
 def get_stats(db: Session = Depends(get_db)):

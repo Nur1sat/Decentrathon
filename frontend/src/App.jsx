@@ -4,6 +4,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
 const CandidateDetail = lazy(() => import("./pages/CandidateDetail.jsx"));
 const Apply = lazy(() => import("./pages/Apply.jsx"));
+const Stats = lazy(() => import("./pages/Stats.jsx"));
+const AiInsights = lazy(() => import("./pages/AiInsights.jsx"));
+const Settings = lazy(() => import("./pages/Settings.jsx"));
 
 function AppLoader() {
   return (
@@ -19,6 +22,10 @@ export default function App() {
       <Suspense fallback={<AppLoader />}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/candidates" element={<Dashboard />} />
+          <Route path="/stats" element={<Stats />} />
+          <Route path="/ai-insights" element={<AiInsights />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/apply" element={<Apply />} />
           <Route path="/candidates/:id" element={<CandidateDetail />} />
           <Route path="*" element={<Navigate to="/" replace />} />

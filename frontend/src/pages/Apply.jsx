@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
 
 export default function Apply() {
   const [params] = useSearchParams();
@@ -113,8 +113,8 @@ export default function Apply() {
   if (submitted) {
     return (
       <div className="min-h-screen bg-surface-100 flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 bg-[#C1F11D]/20 rounded-full flex items-center justify-center mb-6">
-          <span className="text-3xl">✅</span>
+        <div className="w-20 h-20 bg-[#C1F11D] rounded-2xl flex items-center justify-center mb-8 shadow-[0_0_40px_rgba(193,241,29,0.2)]">
+          <Check strokeWidth={3.5} size={44} className="text-black" />
         </div>
         <h1 className="text-2xl font-bold text-white mb-2">Заявка принята!</h1>
         <p className="text-gray-400">

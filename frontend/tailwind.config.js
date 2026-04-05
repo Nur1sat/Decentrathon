@@ -8,16 +8,16 @@ export default {
     extend: {
       colors: {
         primary: {
-          50:  "#eef2ff",
-          100: "#e0e7ff",
-          200: "#c7d2fe",
-          300: "#a5b4fc",
-          400: "#818cf8",
-          500: "#6366f1",
-          600: "#4f46e5",
-          700: "#4338ca",
-          800: "#3730a3",
-          900: "#312e81",
+          50:  "#faffea",
+          100: "#f3fee3",
+          200: "#e7fdba",
+          300: "#d9fb89",
+          400: "#C1F11D", // Main brand green
+          500: "#A8D619", // Slightly darker green
+          600: "#8EBC00",
+          700: "#749A00",
+          800: "#5B7800",
+          900: "#425600",
         },
         violet: {
           400: "#a78bfa",

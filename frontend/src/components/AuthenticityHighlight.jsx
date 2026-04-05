@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import clsx from "clsx";
-import { AlertTriangle, CheckCircle, Bot, Cpu, Fingerprint, Sparkles } from "lucide-react";
+import { AlertTriangle, CheckCircle, Bot, Cpu, Fingerprint, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 
 // ─── Fragment inline highlighting ───────────────────────────────────────────────
 
@@ -9,18 +9,21 @@ const FRAGMENT_STYLES = {
     mark: "bg-red-500/25 text-red-200 border-b-2 border-red-500 rounded-sm px-0.5 cursor-help",
     badge: "bg-red-500/15 border-red-500/40 text-red-300",
     dot: "bg-red-500",
+    textColor: "text-red-400",
     label: "AI-сигнал",
   },
   template: {
     mark: "bg-amber-500/25 text-amber-200 border-b-2 border-amber-400 rounded-sm px-0.5 cursor-help",
     badge: "bg-amber-500/15 border-amber-500/40 text-amber-300",
     dot: "bg-amber-400",
+    textColor: "text-amber-400",
     label: "Клише",
   },
   authentic: {
-    mark: "bg-green-500/20 text-green-200 border-b-2 border-green-500 rounded-sm px-0.5 cursor-help",
-    badge: "bg-green-500/15 border-green-500/40 text-green-300",
-    dot: "bg-green-500",
+    mark: "bg-[#C1F11D]/20 text-green-200 border-b-2 border-[#C1F11D] rounded-sm px-0.5 cursor-help",
+    badge: "bg-[#C1F11D]/15 border-[#C1F11D]/40 text-[#C1F11D]",
+    dot: "bg-[#C1F11D]",
+    textColor: "text-[#C1F11D]",
     label: "Живой голос",
   },
 };
@@ -187,6 +190,7 @@ export default function AuthenticityHighlight({
   originality,
   authenticityFragments,
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const isHighRisk = (aiProbability ?? 0) > 70;
   const paragraphs = (essayText || "").split(/\n+/).filter(Boolean);
   const fragments = authenticityFragments || [];
@@ -196,7 +200,7 @@ export default function AuthenticityHighlight({
       ? "text-red-400"
       : (aiProbability ?? 0) >= 40
       ? "text-amber-400"
-      : "text-green-400";
+      : "text-primary";
 
   return (
     <div className="space-y-5">
@@ -212,7 +216,7 @@ export default function AuthenticityHighlight({
                 ? "text-red-400 bg-red-500/10 border-red-500/30"
                 : (aiProbability ?? 0) >= 40
                 ? "text-amber-400 bg-amber-500/10 border-amber-500/30"
-                : "text-green-400 bg-green-500/10 border-green-500/30"
+                : "text-primary bg-primary/10 border-primary/30"
             )}
           >
             <Bot size={12} />
@@ -222,7 +226,7 @@ export default function AuthenticityHighlight({
             className={clsx(
               "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold",
               (authenticityIndex ?? 0) >= 70
-                ? "text-green-400 bg-green-500/10 border-green-500/30"
+                ? "text-primary bg-primary/10 border-primary/30"
                 : (authenticityIndex ?? 0) >= 40
                 ? "text-amber-400 bg-amber-500/10 border-amber-500/30"
                 : "text-red-400 bg-red-500/10 border-red-500/30"
@@ -252,7 +256,7 @@ export default function AuthenticityHighlight({
               icon={<CheckCircle size={11} />}
               label="Оригинальность"
               value={originality ?? 50}
-              color="text-green-400"
+              color="text-primary"
             />
           </div>
         )}
@@ -275,21 +279,39 @@ export default function AuthenticityHighlight({
       )}
 
       {/* ── Essay with inline highlights ── */}
-      <div className="bg-surface-300 border border-surface-400 rounded-xl p-5 space-y-4">
-        {paragraphs.map((para, i) => (
-          <p key={i} className="text-gray-300 text-sm leading-relaxed">
-            {annotateText(para, fragments)}
-          </p>
-        ))}
-        {paragraphs.length === 0 && (
-          <p className="text-gray-500 text-sm italic">Текст эссе отсутствует.</p>
+      <div className="relative">
+        <div className={clsx(
+          "bg-surface-300 border border-surface-400 rounded-xl p-5 space-y-4 overflow-hidden transition-all duration-300 ease-in-out",
+          !isExpanded && "max-h-[320px]"
+        )}>
+          {paragraphs.map((para, i) => (
+            <p key={i} className="text-gray-300 text-sm leading-relaxed">
+              {annotateText(para, fragments)}
+            </p>
+          ))}
+          {paragraphs.length === 0 && (
+            <p className="text-gray-500 text-sm italic">Текст эссе отсутствует.</p>
+          )}
+        </div>
+        
+        {essayText?.length > 500 && (
+          <button 
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="mt-4 flex items-center gap-1.5 text-xs font-bold text-[#C1F11D] hover:bg-[#C1F11D]/10 px-3 py-1.5 rounded-lg border border-[#C1F11D]/20 transition-all shadow-lg"
+          >
+            {isExpanded ? (
+              <> <ChevronUp size={14} /> Свернуть </>
+            ) : (
+              <> <ChevronDown size={14} /> Развернуть всё эссе </>
+            )}
+          </button>
         )}
       </div>
 
       {/* ── Legend ── */}
-      <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+      <div className="flex flex-wrap items-center gap-4 text-xs">
         {Object.entries(FRAGMENT_STYLES).map(([type, s]) => (
-          <span key={type} className="flex items-center gap-1.5">
+          <span key={type} className={clsx("flex items-center gap-1.5", s.textColor)}>
             <span className={clsx("inline-block w-3 h-1.5 rounded-full", s.dot)} />
             {s.label}
           </span>
