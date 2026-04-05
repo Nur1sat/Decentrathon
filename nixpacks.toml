@@ -1,7 +1,0 @@
-[build]
-providers = ["python", "node"]
-python_version = "3.12"
-install = "cd backend && pip install -r requirements.txt && cd ../frontend && npm install"
-
-[start]
-cmd = "python3 -m uvicorn --app-dir backend main:app --host 0.0.0.0 --port $PORT"

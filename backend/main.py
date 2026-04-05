@@ -45,7 +45,8 @@ def _get_allowed_origins() -> list[str]:
     raw = os.getenv("ALLOWED_ORIGINS", "*").strip()
     if raw == "*":
         return ["*"]
-    return [origin.strip() for origin in raw.split(",") if origin.strip()]
+    # Split by comma, trim whitespace and trailing slashes
+    return [origin.strip().rstrip('/') for origin in raw.split(",") if origin.strip()]
 
 
 def _check_rate_limit(ip: str) -> bool:
@@ -66,13 +67,16 @@ def _make_ref(candidate_id: int, full_name: str) -> str:
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-allowed_origins = _get_allowed_origins()
 
 app = FastAPI(title="HI PO API", version="1.0.0")
+
+# CORS configuration: Allow development localhosts and production domains from environment variables
+allowed_origins = _get_allowed_origins()
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
+    # Standard security: credentials allowed only if origins are explicit
     allow_credentials=allowed_origins != ["*"],
     allow_methods=["*"],
     allow_headers=["*"],
