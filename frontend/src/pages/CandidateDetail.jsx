@@ -24,6 +24,7 @@ import RadarChart from "../components/RadarChart.jsx";
 import AuthenticityHighlight from "../components/AuthenticityHighlight.jsx";
 import FeedbackButton from "../components/FeedbackButton.jsx";
 import PotentialTriggers from "../components/PotentialTriggers.jsx";
+import ConfirmModal from "../components/ConfirmModal.jsx";
 
 const SCHOOL_TYPE_CONFIG = {
   elite:   { label: "Элитная школа",   color: "text-blue-400 bg-blue-500/10 border-blue-500/30" },
@@ -100,6 +101,13 @@ export default function CandidateDetail() {
   const [error, setError] = useState(null);
   const [achievementsExpanded, setAchievementsExpanded] = useState(false);
   const [essayExpanded, setEssayExpanded] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    status: null,
+    title: "",
+    message: "",
+    variant: "primary"
+  });
 
   const load = async () => {
     setLoading(true);
@@ -132,7 +140,6 @@ export default function CandidateDetail() {
   };
 
   const handleDecision = async (status) => {
-    if (!window.confirm(`Вы уверены, что хотите ${status === "accepted" ? "ПРИНЯТЬ" : "ОТКЛОНИТЬ"} кандидата? Будет отправлено официальное письмо в Telegram.`)) return;
     setDecisionLoading(true);
     setError(null);
     try {
@@ -143,6 +150,18 @@ export default function CandidateDetail() {
     } finally {
       setDecisionLoading(false);
     }
+  };
+
+  const requestDecision = (status) => {
+    setConfirmModal({
+      isOpen: true,
+      status,
+      title: status === "accepted" ? "Подтверждение зачислиния" : "Отказ кандидату",
+      message: status === "accepted" 
+        ? `Вы уверены, что хотите ЗАЧИСЛИТЬ кандидата ${candidate.full_name}? Ему будет отправлено официальное уведомление на Email и в Telegram.`
+        : `Вы уверены, что хотите ОТКЛОНИТЬ кандидата ${candidate.full_name}? Ему будет отправлен отказ в Telegram.`,
+      variant: status === "accepted" ? "primary" : "danger",
+    });
   };
 
   if (loading) {
@@ -221,7 +240,7 @@ export default function CandidateDetail() {
               {candidate.status === "pending" && latestScore && (
                 <>
                   <button
-                    onClick={() => handleDecision("rejected")}
+                    onClick={() => requestDecision("rejected")}
                     disabled={decisionLoading || scoring}
                     className="px-4 py-2 bg-transparent text-red-400 font-medium text-xs rounded-xl hover:bg-red-500/10 border border-red-500/30 transition-colors flex items-center gap-1.5"
                   >
@@ -229,7 +248,7 @@ export default function CandidateDetail() {
                     Отклонить
                   </button>
                   <button
-                    onClick={() => handleDecision("accepted")}
+                    onClick={() => requestDecision("accepted")}
                     disabled={decisionLoading || scoring}
                     className="px-4 py-2 bg-[#C1F11D] text-black font-bold text-xs rounded-xl hover:bg-[#a8d619] transition-colors flex items-center gap-1.5"
                   >
@@ -275,11 +294,16 @@ export default function CandidateDetail() {
         <div className="card p-6 mb-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">{candidate.full_name}</h1>
-              <p className="text-gray-400 mt-1">
-                {candidate.age} лет · {candidate.city}
-              </p>
-              <div className="flex flex-wrap items-center gap-2 mt-3">
+              <h1 className="text-2xl font-bold text-white leading-tight">{candidate.full_name}</h1>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-sm text-gray-400">
+                <span>{candidate.age} лет · {candidate.city}</span>
+                {candidate.email && (
+                  <span className="text-[#C1F11D] font-medium bg-[#C1F11D]/10 px-2 py-0.5 rounded-md border border-[#C1F11D]/20">
+                    {candidate.email}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2 mt-4">
                 <span className={clsx("badge border", schoolCfg.color)}>
                   {schoolCfg.label}
                 </span>
@@ -511,6 +535,15 @@ export default function CandidateDetail() {
         </div>
         </main>
       </div>
+
+      <ConfirmModal 
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={() => handleDecision(confirmModal.status)}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant={confirmModal.variant}
+      />
     </div>
   );
 }

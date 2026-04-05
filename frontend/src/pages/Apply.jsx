@@ -11,6 +11,7 @@ export default function Apply() {
     age: "",
     city: "",
     school_type: "regular",
+    email: "",
     achievements_text: "",
     essay_text: "",
   });
@@ -133,7 +134,7 @@ export default function Apply() {
           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">ФИО</label>
           <input 
             type="text" required
-            className="w-full bg-surface-200 border border-surface-400 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-[#C1F11D]"
+            className="input-base"
             value={formData.full_name}
             onChange={e => setFormData({...formData, full_name: e.target.value})}
           />
@@ -144,7 +145,7 @@ export default function Apply() {
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">Возраст</label>
             <input 
               type="number" required min="10" max="40"
-              className="w-full bg-surface-200 border border-surface-400 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-[#C1F11D]"
+              className="input-base"
               value={formData.age}
               onChange={e => setFormData({...formData, age: e.target.value})}
             />
@@ -153,7 +154,7 @@ export default function Apply() {
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">Город</label>
             <input 
               type="text" required
-              className="w-full bg-surface-200 border border-surface-400 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-[#C1F11D]"
+              className="input-base"
               value={formData.city}
               onChange={e => setFormData({...formData, city: e.target.value})}
             />
@@ -161,9 +162,20 @@ export default function Apply() {
         </div>
 
         <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">Email (для уведомления о зачислении)</label>
+          <input 
+            type="email" required
+            placeholder="example@mail.com"
+            className="input-base"
+            value={formData.email}
+            onChange={e => setFormData({...formData, email: e.target.value})}
+          />
+        </div>
+
+        <div>
           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">Тип школы</label>
           <select 
-            className="w-full bg-surface-200 border border-surface-400 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-[#C1F11D] appearance-none"
+            className="select-base"
             value={formData.school_type}
             onChange={e => setFormData({...formData, school_type: e.target.value})}
           >
@@ -178,7 +190,7 @@ export default function Apply() {
           <textarea 
             required rows="3"
             placeholder="Олимпиады, хакатоны, проекты..."
-            className="w-full bg-surface-200 border border-surface-400 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-[#C1F11D]"
+            className="input-base"
             value={formData.achievements_text}
             onChange={e => setFormData({...formData, achievements_text: e.target.value})}
           />
@@ -192,7 +204,7 @@ export default function Apply() {
           <textarea 
             required rows="6"
             placeholder="Почему HI PO Program? Напишите своими словами."
-            className="w-full bg-surface-200 border border-surface-400 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-[#C1F11D] font-medium"
+            className="input-base font-medium"
             value={formData.essay_text}
             onChange={e => setFormData({...formData, essay_text: e.target.value})}
             onKeyDown={handleKeyDown}

@@ -38,9 +38,8 @@ class Candidate(Base):
     city = Column(String(255), nullable=False)
     achievements_text = Column(Text, nullable=False)
     essay_text = Column(Text, nullable=False)
-    # source: how the application was submitted (web_form, telegram, telegram_webapp, direct)
     source = Column(String(50), nullable=False, default="direct")
-    
+    email = Column(String(255), nullable=True)
     status = Column(String(50), nullable=False, default="pending")  # pending, accepted, rejected
     
     tg_chat_id = Column(String(50), nullable=True)
@@ -116,6 +115,7 @@ class CandidateCreate(BaseModel):
     city: str
     achievements_text: str
     essay_text: str
+    email: Optional[str] = None
     source: str = "direct"
 
 
@@ -127,6 +127,7 @@ class ApplicationSubmit(BaseModel):
     city: str
     achievements_text: str
     essay_text: str
+    email: Optional[str] = None
     source: str = "web_form"
     tg_chat_id: Optional[str] = None
     biometrics_data: Optional[dict] = None
@@ -191,6 +192,7 @@ class CandidateOut(BaseModel):
     achievements_text: str
     essay_text: str
     source: str = "direct"
+    email: Optional[str] = None
     status: str = "pending"
     created_at: datetime
     latest_score: Optional[ScoreOut] = None
@@ -208,6 +210,7 @@ class CandidateDetailOut(BaseModel):
     achievements_text: str
     essay_text: str
     source: str = "direct"
+    email: Optional[str] = None
     status: str = "pending"
     created_at: datetime
     scores: List[ScoreOut] = []

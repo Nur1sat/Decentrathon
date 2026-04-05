@@ -3,6 +3,8 @@ import logging
 import time
 import os
 import httpx
+import aiosmtplib
+from email.message import EmailMessage
 from dotenv import load_dotenv
 from collections import defaultdict
 from typing import List, Optional
@@ -220,6 +222,38 @@ async def send_telegram_message(chat_id: str, text: str):
     except Exception as e:
         logger.error(f"Failed to send telegram message to {chat_id}: {e}")
 
+
+async def send_email(to_email: str, subject: str, body: str):
+    smtp_server = os.getenv("SMTP_SERVER")
+    smtp_port = int(os.getenv("SMTP_PORT", 587))
+    smtp_user = os.getenv("SMTP_USER")
+    smtp_password = os.getenv("SMTP_PASSWORD")
+    smtp_sender = os.getenv("SMTP_SENDER", smtp_user)
+
+    if not all([smtp_server, smtp_user, smtp_password, to_email]):
+        logger.warning(f"SMTP credentials or recipient missing. Email not sent to {to_email}")
+        return
+
+    message = EmailMessage()
+    message["From"] = smtp_sender
+    message["To"] = to_email
+    message["Subject"] = subject
+    message.set_content(body)
+
+    try:
+        await aiosmtplib.send(
+            message,
+            hostname=smtp_server,
+            port=smtp_port,
+            username=smtp_user,
+            password=smtp_password,
+            use_tls=(smtp_port == 465),
+            start_tls=(smtp_port == 587),
+        )
+        logger.info(f"Email sent successfully to {to_email}")
+    except Exception as e:
+        logger.error(f"Failed to send email to {to_email}: {e}")
+
 @app.post("/apply/web", response_model=ApplicationResult, status_code=201)
 async def apply_web(
     payload: ApplicationSubmit,
@@ -363,6 +397,18 @@ async def set_decision(
 
         if msg:
             await send_telegram_message(candidate.tg_chat_id, msg)
+
+    # Dispatch official email
+    if candidate.email and payload.status == "accepted":
+        subject = "Уведомление о зачислении — Программа HI PO"
+        email_body = (
+            f"Уважаемый(ая) {candidate.full_name},\n\n"
+            f"От лица Приемной комиссии грантовой программы HI PO, мы рады сообщить, что ваша кандидатура была успешно отобрана.\n\n"
+            f"Мы были впечатлены вашими достижениями и высоким лидерским потенциалом. Добро пожаловать в число будущих лидеров Казахстана!\n\n"
+            f"Инструкции по дальнейшим шагам будут направлены вам в ближайшее время.\n\n"
+            f"С уважением,\nПриемная комиссия HI PO"
+        )
+        await send_email(candidate.email, subject, email_body)
 
     return CandidateOut.model_validate(candidate)
 
