@@ -41,6 +41,13 @@ _RATE_LIMIT_MAX = 3
 _RATE_LIMIT_WINDOW = 3600  # seconds
 
 
+def _get_allowed_origins() -> list[str]:
+    raw = os.getenv("ALLOWED_ORIGINS", "*").strip()
+    if raw == "*":
+        return ["*"]
+    return [origin.strip() for origin in raw.split(",") if origin.strip()]
+
+
 def _check_rate_limit(ip: str) -> bool:
     """Return True if the IP is within the allowed rate."""
     now = time.time()
@@ -59,13 +66,14 @@ def _make_ref(candidate_id: int, full_name: str) -> str:
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+allowed_origins = _get_allowed_origins()
 
 app = FastAPI(title="HI PO API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=allowed_origins,
+    allow_credentials=allowed_origins != ["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )

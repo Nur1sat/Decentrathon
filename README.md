@@ -100,6 +100,7 @@ The platform is configured for deployment on [Railway](https://railway.app) as a
 Add the following variables to your Railway service:
 - `DATABASE_URL`: (Railway will provide this after you add a PostgreSQL plugin).
 - `GROQ_API_KEY`: Your Groq Cloud API key.
+- `ALLOWED_ORIGINS`: Comma-separated frontend origins for CORS, or `*` to allow all.
 - `TELEGRAM_BOT_TOKEN`: From BotFather.
 - `BACKEND_URL`: The public backend URL used by the Telegram bot (e.g., `https://your-app-production.up.railway.app`).
 - `FRONTEND_WEBAPP_URL`: The public HTTPS URL of the application form used by the Telegram bot (e.g., `https://your-frontend.example.com/apply`).
