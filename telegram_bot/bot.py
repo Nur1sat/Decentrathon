@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import httpx
@@ -24,6 +25,8 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 FRONTEND_WEBAPP_URL = os.getenv("FRONTEND_WEBAPP_URL", "").strip()
+_CONFLICT_LOG_INTERVAL_SECONDS = 30.0
+_last_conflict_log_at = 0.0
 
 
 def _build_webapp_url(chat_id: int) -> str | None:
@@ -46,12 +49,17 @@ def _build_webapp_url(chat_id: int) -> str | None:
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Log Telegram errors clearly and stop on polling conflicts."""
+    """Log Telegram errors clearly while allowing polling retries to recover."""
+    global _last_conflict_log_at
+
     if isinstance(context.error, Conflict):
-        logger.error(
-            "Telegram polling conflict detected. Make sure only one bot instance is running for this token."
-        )
-        context.application.stop_running()
+        now = time.monotonic()
+        if now - _last_conflict_log_at >= _CONFLICT_LOG_INTERVAL_SECONDS:
+            logger.warning(
+                "Telegram polling conflict detected. Another bot instance may still be running "
+                "or shutting down. Polling will retry automatically."
+            )
+            _last_conflict_log_at = now
         return
 
     if isinstance(context.error, BadRequest):
